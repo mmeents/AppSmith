@@ -13,3 +13,7 @@ Project target Framework net48 showcases the following components
  package FCTB version 2.16.24  - For the syntax highlighting text editors.
  package MessagePack version 2.5.140 - For the high-performance object serialization  
  package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
+
+So sorry no build, if I built it for you, your os wouldn't trust it anyway so good reason to download Visual Studio Community edition and build and run it.
+
+Cheers
