@@ -517,6 +517,9 @@ namespace AppSmith.Models {
             && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
             && (outArr[i].Content.ToUpper() == "CREATE")) {
             InCreateState = true;
+            InCreateTableState = false;
+            HasTableName = false;
+            curTableName = "";
             curCode = outArr[i].Content+" ";
             i++; NeedsAdvance = false;            
           }
@@ -689,6 +692,7 @@ namespace AppSmith.Models {
               }
             }
             i++; NeedsAdvance = false;
+            InCreateState = false;
             curCode = "";
             curColSize = "";
             InNameCols = false;
