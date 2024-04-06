@@ -24,7 +24,7 @@ namespace AppSmith {
     private string _defaultDir = "";
     private bool _modelActive = false;
 
-    private string _fileName;
+    private string _fileName = "No File Open";
     private string _folder;
     private Types _types;
     private FilePackage _filePackage;
@@ -150,11 +150,11 @@ namespace AppSmith {
       closeStripMenuItem.Enabled = _modelActive;
     }
     private void openStripMenuItem_Click(object sender, EventArgs e) {
-      if (lbFileName.Text == "No File Open") {
+      if (_fileName == "No File Open") {
         odMain.InitialDirectory = _defaultDir;
       } else {
-        string s = lbFileName.Text.ParseLast("\\");
-        odMain.InitialDirectory = lbFileName.Text.Substring(0, lbFileName.Text.Length - s.Length);
+        string s = _fileName.ParseLast("\\");
+        odMain.InitialDirectory = _fileName.Substring(0, _fileName.Length - s.Length);
       }
       DialogResult res = odMain.ShowDialog();
       if (res == DialogResult.OK) {
@@ -168,7 +168,7 @@ namespace AppSmith {
           }
           _settingsPack.Settings = _settings;
           _settingsPack.Save();
-          lbFileName.Text = _fileName;        
+          this.Text = $"AppSmith {_fileName}";          
           _folder = _fileName.Substring(0, _fileName.Length - (_fileName.ParseLast("\\").Length + 1));
           if (!Directory.Exists(_folder)) {
             Directory.CreateDirectory(_folder);
@@ -188,13 +188,14 @@ namespace AppSmith {
       }
     }
     private void closeStripMenuItem_Click(object sender, EventArgs e) {
-      lbFileName.Text = "No File Open";
+      _fileName = "No File Open";
       _modelActive = false;
       tvBuilder.Nodes.Clear();
       tvBuilder.Enabled = false;
       tvBuilder.ContextMenuStrip = null;
       props.Item.Clear();
       props.Enabled = false;
+      this.Text = "AppSmith ";
     }
     #endregion
     #region tree View right click menu and handlers 
@@ -474,6 +475,7 @@ namespace AppSmith {
       }
       lbFocusedItem.Text = it.Text;
       switch (it.TypeId) {
+        case (int)TnType.Tables: PrepareListTables(it); break;
         case (int)TnType.Table: PrepareTableType(it); break;
       //  case (int)TnType.Procedure: PrepareProcedureType(it); break;
       //  case (int)TnType.Function: PrepareFunctionType(it); break;
@@ -485,6 +487,15 @@ namespace AppSmith {
       if (it == null) return;
       edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
       edCSharp.Text = $"// {it.Text} C not implemented ";
+    }
+
+    public void PrepareListTables(Item it) { 
+      StringBuilder res = new StringBuilder();
+      foreach(var childTable in it.Nodes) { 
+        Item thisItem = (Item)childTable;
+        res.AppendLine(thisItem.GenerateSqlCreateTable(_types)+Cs.nl);
+      }
+      edSQL.Text = res.ToString();
     }
     public void PrepareTableType(Item it) {
       if (it == null) return;

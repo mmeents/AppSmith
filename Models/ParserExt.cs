@@ -8,7 +8,7 @@ using static AppSmith.Models.ParserExt;
 namespace AppSmith.Models {  
   public static class ParserExt {
     public enum sqlTokenType { 
-      Keyword, Identifier, ColType, ParanStart, ParanEnd, Comma, Number 
+      Keyword, Identifier, ColType, ParanStart, ParanEnd, Comma, Number, Comment 
     }
     public class pscOp { 
       public sqlTokenType OpType;
@@ -16,41 +16,45 @@ namespace AppSmith.Models {
     }
     public static List<pscOp> ParseSqlContent(string createQueryStr) {
       List<pscOp> pscOps = new List<pscOp>();      
-      var raw = createQueryStr.Replace(",", " , ").Replace("(", " (").Replace(")", " )").Parse(" "+Environment.NewLine);
-      foreach (var op in raw) {
-        string wop = op;
-        while (wop.Length > 0) { 
+      var lines = createQueryStr.Parse(Environment.NewLine);
+      foreach (var line in lines) { 
+        string noComment = line.IndexOf("--") == -1 ? line : line.Substring(0, line.IndexOf("--"));
+        var raw = noComment.Replace(",", " , ").Replace("(", " (").Replace(")", " )").Parse(" ");
+        foreach (var op in raw) {
+          string wop = op;
+          while (wop.Length > 0) { 
 
-          if ((wop.Length > 0) && (wop[0]=='(') ) {
-            pscOps.Add(new pscOp { OpType = sqlTokenType.ParanStart, Content = wop[0].AsString() });
-            wop = wop.Substring(1);             
-          } else if ((wop.Length > 0) && (wop[0] == ')')) {
-            pscOps.Add(new pscOp { OpType = sqlTokenType.ParanEnd, Content = wop[0].AsString() });
-            wop = wop.Substring(1);
-          } else if ((wop.Length > 0) && (wop[0] == ',')) {
-            pscOps.Add(new pscOp { OpType = sqlTokenType.Comma, Content = wop[0].AsString() });
-            wop = wop.Substring(1);
-          } else if ((wop.Length > 0) && wop.IsNumber()) { 
-            string sout = wop.ReadNumbers();
-            if (sout.Length > 0) {
-              pscOps.Add(new pscOp { OpType = sqlTokenType.Number, Content = sout });
-              wop = wop.Substring(sout.Length);
-            }
-          } else if ((wop.Length > 0) && (wop.IsKeyword())) { 
-             pscOps.Add(new pscOp { OpType = sqlTokenType.Keyword, Content = wop });
-             wop = "";
-          } else if ((wop.Length > 0) && (wop.IsColType())) { 
-            string sout = wop.ReadColType();
-            if (sout.Length > 0) {
-              pscOps.Add(new pscOp { OpType = sqlTokenType.ColType, Content = sout });
-              wop = wop.Substring(sout.Length);
-            }
-          } else if ((wop.Length > 0) && (wop.IsIdentifier())) {
-            string sout = wop.ReadIdentifier();
-            if (sout.Length > 0) {
-              string display = sout.RemoveChar('[').RemoveChar(']');
-              pscOps.Add(new pscOp { OpType = sqlTokenType.Identifier, Content = display });
-              wop = wop.Substring(sout.Length);
+            if ((wop.Length > 0) && (wop[0]=='(') ) {
+              pscOps.Add(new pscOp { OpType = sqlTokenType.ParanStart, Content = wop[0].AsString() });
+              wop = wop.Substring(1);             
+            } else if ((wop.Length > 0) && (wop[0] == ')')) {
+              pscOps.Add(new pscOp { OpType = sqlTokenType.ParanEnd, Content = wop[0].AsString() });
+              wop = wop.Substring(1);
+            } else if ((wop.Length > 0) && (wop[0] == ',')) {
+              pscOps.Add(new pscOp { OpType = sqlTokenType.Comma, Content = wop[0].AsString() });
+              wop = wop.Substring(1);          
+            } else if ((wop.Length > 0) && wop.IsNumber()) { 
+              string sout = wop.ReadNumbers();
+              if (sout.Length > 0) {
+                pscOps.Add(new pscOp { OpType = sqlTokenType.Number, Content = sout });
+                wop = wop.Substring(sout.Length);
+              }
+            } else if ((wop.Length > 0) && (wop.IsKeyword())) { 
+               pscOps.Add(new pscOp { OpType = sqlTokenType.Keyword, Content = wop });
+               wop = "";
+            } else if ((wop.Length > 0) && (wop.IsColType())) { 
+              string sout = wop.ReadColType();
+              if (sout.Length > 0) {
+                pscOps.Add(new pscOp { OpType = sqlTokenType.ColType, Content = sout });
+                wop = wop.Substring(sout.Length);
+              }
+            } else if ((wop.Length > 0) && (wop.IsIdentifier())) {
+              string sout = wop.ReadIdentifier();
+              if (sout.Length > 0) {
+                string display = sout.RemoveChar('[').RemoveChar(']');
+                pscOps.Add(new pscOp { OpType = sqlTokenType.Identifier, Content = display });
+                wop = wop.Substring(sout.Length);
+              }
             }
           }
         }
