@@ -304,7 +304,7 @@ namespace AppSmith {
     private void AddDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
       var dbItem = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Database], "Database");
       _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Tables], "Tables");
-      _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Procedure], "Procedures");
+      _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Procedures], "Procedures");
     }
 
     private void apiToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -469,17 +469,24 @@ namespace AppSmith {
     }
 
     public void PopulateEditors(Item it) {
+      var lit = it;
+      if (lit != null) {
+        if (lit.TypeId >= (int)TnType.TableColumn && lit.TypeId <= (int)TnType.FunctionParam) {
+          lit = (Item)_inEditItem.Parent;        
+        }
+      }
+
       if (it == null) {
         lbFocusedItem.Text = string.Empty;
          return;
       }
       lbFocusedItem.Text = it.Text;
-      switch (it.TypeId) {
-        case (int)TnType.Tables: PrepareListTables(it); break;
-        case (int)TnType.Table: PrepareTableType(it); break;
-      //  case (int)TnType.Procedure: PrepareProcedureType(it); break;
+      switch (lit.TypeId) {
+        case (int)TnType.Tables: PrepareListTables(lit); break;
+        case (int)TnType.Table: PrepareTableType(lit); break;
+        case (int)TnType.Procedure: PrepareProcedureType(lit); break;
       //  case (int)TnType.Function: PrepareFunctionType(it); break;
-        default: PrepareNullType(it); break;
+        default: PrepareNullType(lit); break;
       }
     }
 
@@ -504,8 +511,8 @@ namespace AppSmith {
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
-    //  edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
-    //  edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
+      edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
+      edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
     }
 
     public void PrepareFunctionType(Item tnFunction) {
@@ -535,7 +542,7 @@ namespace AppSmith {
     }
     private void inputParseToolStripMenuItem_Click(object sender, EventArgs e) {
       string sInput = edInput.Text;
-      _itemCaster.SaveNewChildItemsFromSqlTblCreate(_inEditItem, sInput);     
+      _itemCaster.ParseSqlContentIntoItems(_inEditItem, sInput);     
     }
 
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AppSmith.Models {
   public static class Ext {
@@ -266,19 +268,30 @@ namespace AppSmith.Models {
   public static class Ic {
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {
       string r = $"-- a table create {Cs.nl}Create Table {tnTable.Text}({Cs.nl}";
-      bool hasId = false;
+      bool hasId = false; bool ftt = true;
+      string identityColName = "";
       foreach (Item tn in tnTable.Nodes) {
-        if (tn.Text.ToLower() == "id") {
-          r += "    " + tn.Text +" "+ types[tn.ValueTypeId].Name + tn.ValueTypeSize+" NOT NULL IDENTITY(1,1)," + Cs.nl;
+        string src = tn?.Code ?? "";
+        bool isIdentity = (src.IndexOf("IDENTITY", StringComparison.CurrentCultureIgnoreCase) >= 0);
+        if (isIdentity && !hasId) hasId = true;
+        if (isIdentity) {
+          identityColName = tn.Text;
+        }
+        bool isNotNull = (src.IndexOf("NOT NULL", StringComparison.CurrentCultureIgnoreCase) >=0);
+        if (tn.Text.ToLower() == "id") {          
+          r += (!ftt ? "," + Cs.nl : "") + 
+            "    " + tn.Text +" "+ types[tn.ValueTypeId].Name + tn.ValueTypeSize+" NOT NULL IDENTITY(1,1)";
           hasId = true;
         } else {
-          r += "    " + tn.Text + " " + types[tn.ValueTypeId].Name+ tn.ValueTypeSize + " NULL," + Cs.nl;
+          r += (!ftt ? "," + Cs.nl: "")+ 
+            "    " + tn.Text + " " + types[tn.ValueTypeId].Name+ tn.ValueTypeSize + (isNotNull ? " NOT" : "") + " NULL"+(isIdentity? " IDENTITY(1,1)" : "");          
         }
+        if (ftt) ftt = false;
       }
       if (hasId) { 
-        r += $"    CONSTRAINT [PK_{tnTable.Text.RemoveChar('.')}_Id] PRIMARY KEY CLUSTERED ([ID]) {Cs.nl})";
+        r += "," + Cs.nl+$"    CONSTRAINT [PK_{tnTable.Text.RemoveChar('.')}_{identityColName}] PRIMARY KEY CLUSTERED ([{identityColName}])";
       }
-      return r;
+      return r+ $"{Cs.nl})";
     }
           
     public static string GenerateSQLAddUpdateStoredProc(this Item tnTable, Types types) {
@@ -324,14 +337,14 @@ namespace AppSmith.Models {
       Item cn = tnProc;
       string tblText = tnProc.Text;
       string sSQLParam1 = tnProc.GetSQLParamList(types);
-      string sSqlDeclare = tnProc.GetDeclareSQLParam(types);
-      return
-        "-- Add Update SQL Stored Proc for " + tblText + "" + Cs.nl +
+      string sSqlDeclare = tnProc.GetDeclareSQLParam(types);      
+      string sSqlBody = tnProc.GetStProcBody();
+      //sSqlBody = Formatter.Format(sSqlBody);
+      return        
         "Create Procedure " + tblText + " (" + Cs.nl +
         "  " + sSQLParam1 + Cs.nl +
         ") as " + Cs.nl +
-        "  set nocount on " + Cs.nl + Cs.nl +
-        "return" + Cs.nl + Cs.nl +
+        sSqlBody + Cs.nl + Cs.nl +
         "-- call to execute" + Cs.nl +
         sSqlDeclare + Cs.nl +
         $"Exec {tnProc.Text} {tnProc.GetSQLInsertListAsSQLParam(true)}";
@@ -353,10 +366,13 @@ namespace AppSmith.Models {
     public static string GetSQLParamList(this Item tnTable, Types types) {
       string sRes = "";
       foreach (Item tnColumn in tnTable.Nodes) {
-        if (sRes == "") {
-          sRes = "@" + tnColumn.Text + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
-        } else {
-          sRes = sRes + "," + Environment.NewLine + "  @" + tnColumn.Text + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
+        if (tnColumn.TypeId != (int)TnType.ProcBody) { 
+          var paramName = "@" + tnColumn.Text.RemoveChar('@');
+          if (sRes == "") {
+            sRes = paramName + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
+          } else {
+            sRes = sRes + "," + Environment.NewLine + "  " + paramName + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
+          }
         }
       }
       return sRes;
@@ -365,16 +381,17 @@ namespace AppSmith.Models {
     public static string GetSQLInsertListAsSQLParam(this Item tnTable, bool IncludeFirstCol = false) {
       string sRes = ""; string sFTT = "true";
       foreach (Item tn in tnTable.Nodes) {
+        var paramName = "@"+tn.Text.RemoveChar('@');
         if (sFTT == "true") {
           sFTT = "false";
           if (IncludeFirstCol) {
-            sRes = "@" + tn.Text;
+            sRes = paramName;
           }
         } else {
           if (sRes == "") {
-            sRes = "@" + tn.Text;
+            sRes = paramName;
           } else {
-            sRes = sRes + ", @" + tn.Text;
+            sRes = sRes + ", " + paramName;
           }
         }
       }
@@ -533,8 +550,10 @@ namespace AppSmith.Models {
       string a = "";
       string d = "";
       for (Int32 i = 0; i < tnStProc.Nodes.Count; i++) {
-        a = a + (a == "" ? "" : ", ") + tnStProc.Nodes[i].Text.ParseFirst(" @");
-        d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[((Item)tnStProc.Nodes[i]).ValueTypeId].Desc)} {tnStProc.Nodes[i].Text.ParseFirst(" @")}";
+        if (((Item)tnStProc.Nodes[i]).TypeId != (int)TnType.ProcBody) {
+          a = a + (a == "" ? "" : ", ") + tnStProc.Nodes[i].Text.ParseFirst(" @");
+          d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[((Item)tnStProc.Nodes[i]).ValueTypeId].Desc)} {tnStProc.Nodes[i].Text.ParseFirst(" @")}";
+        }
       }
       string className = tnStProc.Text.ParseLast(".").AsUpperCaseFirstLetter();
       var s = "    // C Dapper Edit via Add Update stored procdure" + Cs.nl +
@@ -553,9 +572,22 @@ namespace AppSmith.Models {
     public static string GetDeclareSQLParam(this Item tnStProc, Types types) {
       string s = "";
       foreach (Item cn in tnStProc.Nodes) {
-        s = s + $"declare @{cn.Text} {types[cn.ValueTypeId].Name}{cn.ValueTypeSize} set @" + cn.Text + " = " + Cs.SQLDefNullValueSQL(types[cn.ValueTypeId].Desc) + ";" + Cs.nl;
+        if (cn.TypeId != (int)TnType.ProcBody) {
+          s = s + $"declare @{cn.Text.RemoveChar('@')} {types[cn.ValueTypeId].Name}{cn.ValueTypeSize} set @" + cn.Text.RemoveChar('@') + " = " + Cs.SQLDefNullValueSQL(types[cn.ValueTypeId].Desc) + ";" + Cs.nl;
+        }
       }
       return s;
+    }
+
+    public static string GetStProcBody(this Item tnStProc) { 
+      string ret = "";
+      foreach(TreeNode x in tnStProc.Nodes) { 
+        Item child = x as Item;
+        if ((child != null)&&(child.TypeId==(int)TnType.ProcBody)) {
+          ret = ret + child.Code;
+        }
+      }      
+      return ret.Replace(" ,", ",").Replace("( ", "(").Replace(" (", "(").Replace(" )", ")").Replace(") ", ")");
     }
 
     public static string GetSQLDeclareVarColList(this Item rn, Types types) {

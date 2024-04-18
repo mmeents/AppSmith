@@ -8,7 +8,7 @@ using static AppSmith.Models.ParserExt;
 namespace AppSmith.Models {  
   public static class ParserExt {
     public enum sqlTokenType { 
-      Keyword, Identifier, ColType, ParanStart, ParanEnd, Comma, Number, Comment 
+      Keyword, Identifier, ColType, ParanStart, ParanEnd, Comma, Number, Comment, NewLine 
     }
     public class pscOp { 
       public sqlTokenType OpType;
@@ -56,8 +56,9 @@ namespace AppSmith.Models {
                 wop = wop.Substring(sout.Length);
               }
             }
-          }
+          }          
         }
+        pscOps.Add(new pscOp { OpType = sqlTokenType.NewLine, Content = Environment.NewLine });
       }
       return pscOps;
     }

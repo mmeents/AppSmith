@@ -45,12 +45,6 @@
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.props = new PropertyGridEx.PropertyGridEx();
       this.tabControl1 = new System.Windows.Forms.TabControl();
-      this.tpSqlOut = new System.Windows.Forms.TabPage();
-      this.edSQL = new FastColoredTextBoxNS.FastColoredTextBox();
-      this.msOutput = new System.Windows.Forms.ContextMenuStrip(this.components);
-      this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
-      this.tpCOut = new System.Windows.Forms.TabPage();
-      this.edCSharp = new FastColoredTextBoxNS.FastColoredTextBox();
       this.tpInput = new System.Windows.Forms.TabPage();
       this.edInput = new FastColoredTextBoxNS.FastColoredTextBox();
       this.msInput = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -58,6 +52,12 @@
       this.inputCopyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.inputPasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.inputParseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.tpSqlOut = new System.Windows.Forms.TabPage();
+      this.edSQL = new FastColoredTextBoxNS.FastColoredTextBox();
+      this.msOutput = new System.Windows.Forms.ContextMenuStrip(this.components);
+      this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
+      this.tpCOut = new System.Windows.Forms.TabPage();
+      this.edCSharp = new FastColoredTextBoxNS.FastColoredTextBox();
       this.tpLog = new System.Windows.Forms.TabPage();
       this.edLogMsg = new System.Windows.Forms.TextBox();
       this.panel1 = new System.Windows.Forms.Panel();
@@ -78,14 +78,14 @@
       this.splitContainer2.SuspendLayout();
       this.msBuilder.SuspendLayout();
       this.tabControl1.SuspendLayout();
+      this.tpInput.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.edInput)).BeginInit();
+      this.msInput.SuspendLayout();
       this.tpSqlOut.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.edSQL)).BeginInit();
       this.msOutput.SuspendLayout();
       this.tpCOut.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.edCSharp)).BeginInit();
-      this.tpInput.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.edInput)).BeginInit();
-      this.msInput.SuspendLayout();
       this.tpLog.SuspendLayout();
       this.panel1.SuspendLayout();
       this.menuStrip1.SuspendLayout();
@@ -290,7 +290,7 @@
       this.props.DocCommentDescription.AutoEllipsis = true;
       this.props.DocCommentDescription.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentDescription.Location = new System.Drawing.Point(4, 24);
-      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(12, 0, 12, 0);
+      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(14, 0, 14, 0);
       this.props.DocCommentDescription.Name = "";
       this.props.DocCommentDescription.Size = new System.Drawing.Size(0, 43);
       this.props.DocCommentDescription.TabIndex = 1;
@@ -301,7 +301,7 @@
       this.props.DocCommentTitle.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
       this.props.DocCommentTitle.Location = new System.Drawing.Point(4, 3);
-      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(12, 0, 12, 0);
+      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(14, 0, 14, 0);
       this.props.DocCommentTitle.Name = "";
       this.props.DocCommentTitle.Size = new System.Drawing.Size(0, 18);
       this.props.DocCommentTitle.TabIndex = 0;
@@ -326,7 +326,7 @@
       this.props.ToolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.props.ToolStrip.Location = new System.Drawing.Point(0, 1);
       this.props.ToolStrip.Name = "";
-      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(9, 0, 1, 0);
+      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(10, 0, 1, 0);
       this.props.ToolStrip.Size = new System.Drawing.Size(258, 25);
       this.props.ToolStrip.TabIndex = 1;
       this.props.ToolStrip.TabStop = true;
@@ -346,118 +346,6 @@
       this.tabControl1.SelectedIndex = 0;
       this.tabControl1.Size = new System.Drawing.Size(516, 438);
       this.tabControl1.TabIndex = 0;
-      // 
-      // tpSqlOut
-      // 
-      this.tpSqlOut.Controls.Add(this.edSQL);
-      this.tpSqlOut.Location = new System.Drawing.Point(4, 24);
-      this.tpSqlOut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpSqlOut.Name = "tpSqlOut";
-      this.tpSqlOut.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpSqlOut.Size = new System.Drawing.Size(508, 410);
-      this.tpSqlOut.TabIndex = 1;
-      this.tpSqlOut.Text = "Sql Out";
-      this.tpSqlOut.UseVisualStyleBackColor = true;
-      // 
-      // edSQL
-      // 
-      this.edSQL.AutoCompleteBracketsList = new char[] {
-        '(',
-        ')',
-        '{',
-        '}',
-        '[',
-        ']',
-        '\"',
-        '\"',
-        '\'',
-        '\''};
-      this.edSQL.AutoIndentCharsPatterns = "";
-      this.edSQL.AutoScrollMinSize = new System.Drawing.Size(27, 14);
-      this.edSQL.BackBrush = null;
-      this.edSQL.CharHeight = 14;
-      this.edSQL.CharWidth = 8;
-      this.edSQL.CommentPrefix = "--";
-      this.edSQL.ContextMenuStrip = this.msOutput;
-      this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
-      this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-      this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edSQL.IsReplaceMode = false;
-      this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
-      this.edSQL.LeftBracket = '(';
-      this.edSQL.Location = new System.Drawing.Point(4, 3);
-      this.edSQL.Name = "edSQL";
-      this.edSQL.Paddings = new System.Windows.Forms.Padding(0);
-      this.edSQL.RightBracket = ')';
-      this.edSQL.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-      this.edSQL.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edSQL.ServiceColors")));
-      this.edSQL.Size = new System.Drawing.Size(500, 404);
-      this.edSQL.TabIndex = 1;
-      this.edSQL.Zoom = 100;
-      // 
-      // msOutput
-      // 
-      this.msOutput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem3});
-      this.msOutput.Name = "msInput";
-      this.msOutput.Size = new System.Drawing.Size(103, 26);
-      this.msOutput.Click += new System.EventHandler(this.msOutput_Click);
-      // 
-      // toolStripMenuItem3
-      // 
-      this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-      this.toolStripMenuItem3.Size = new System.Drawing.Size(102, 22);
-      this.toolStripMenuItem3.Text = "Copy";
-      this.toolStripMenuItem3.Click += new System.EventHandler(this.toolStripMenuItem3_Click);
-      // 
-      // tpCOut
-      // 
-      this.tpCOut.Controls.Add(this.edCSharp);
-      this.tpCOut.Location = new System.Drawing.Point(4, 24);
-      this.tpCOut.Name = "tpCOut";
-      this.tpCOut.Size = new System.Drawing.Size(508, 410);
-      this.tpCOut.TabIndex = 2;
-      this.tpCOut.Text = "C# Out";
-      this.tpCOut.UseVisualStyleBackColor = true;
-      // 
-      // edCSharp
-      // 
-      this.edCSharp.AutoCompleteBracketsList = new char[] {
-        '(',
-        ')',
-        '{',
-        '}',
-        '[',
-        ']',
-        '\"',
-        '\"',
-        '\'',
-        '\''};
-      this.edCSharp.AutoIndentCharsPatterns = "\r\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\r\n^\\s*(case|default)\\s*[^:]" +
-    "*(?<range>:)\\s*(?<range>[^;]+);\r\n";
-      this.edCSharp.AutoScrollMinSize = new System.Drawing.Size(2, 14);
-      this.edCSharp.BackBrush = null;
-      this.edCSharp.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
-      this.edCSharp.CharHeight = 14;
-      this.edCSharp.CharWidth = 8;
-      this.edCSharp.ContextMenuStrip = this.msOutput;
-      this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
-      this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-      this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edCSharp.IsReplaceMode = false;
-      this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
-      this.edCSharp.LeftBracket = '(';
-      this.edCSharp.LeftBracket2 = '{';
-      this.edCSharp.Location = new System.Drawing.Point(0, 0);
-      this.edCSharp.Name = "edCSharp";
-      this.edCSharp.Paddings = new System.Windows.Forms.Padding(0);
-      this.edCSharp.RightBracket = ')';
-      this.edCSharp.RightBracket2 = '}';
-      this.edCSharp.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-      this.edCSharp.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edCSharp.ServiceColors")));
-      this.edCSharp.Size = new System.Drawing.Size(508, 410);
-      this.edCSharp.TabIndex = 1;
-      this.edCSharp.Zoom = 100;
       // 
       // tpInput
       // 
@@ -492,6 +380,7 @@
       this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edInput.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edInput.IsReplaceMode = false;
       this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
       this.edInput.LeftBracket = '(';
@@ -513,44 +402,158 @@
             this.inputPasteToolStripMenuItem,
             this.inputParseToolStripMenuItem});
       this.msInput.Name = "msInput";
-      this.msInput.Size = new System.Drawing.Size(170, 92);
+      this.msInput.Size = new System.Drawing.Size(181, 114);
       // 
       // inputClearToolStripMenuItem
       // 
       this.inputClearToolStripMenuItem.Name = "inputClearToolStripMenuItem";
-      this.inputClearToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+      this.inputClearToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.inputClearToolStripMenuItem.Text = "Clear";
       this.inputClearToolStripMenuItem.Click += new System.EventHandler(this.inputClearToolStripMenuItem_Click);
       // 
       // inputCopyToolStripMenuItem
       // 
       this.inputCopyToolStripMenuItem.Name = "inputCopyToolStripMenuItem";
-      this.inputCopyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+      this.inputCopyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.inputCopyToolStripMenuItem.Text = "Copy";
       this.inputCopyToolStripMenuItem.Click += new System.EventHandler(this.inputCopyToolStripMenuItem_Click);
       // 
       // inputPasteToolStripMenuItem
       // 
       this.inputPasteToolStripMenuItem.Name = "inputPasteToolStripMenuItem";
-      this.inputPasteToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+      this.inputPasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.inputPasteToolStripMenuItem.Text = "Paste";
       this.inputPasteToolStripMenuItem.Click += new System.EventHandler(this.inputPasteToolStripMenuItem_Click);
       // 
       // inputParseToolStripMenuItem
       // 
       this.inputParseToolStripMenuItem.Name = "inputParseToolStripMenuItem";
-      this.inputParseToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-      this.inputParseToolStripMenuItem.Text = "Parse Create Table";
+      this.inputParseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.inputParseToolStripMenuItem.Text = "Parse SQL";
       this.inputParseToolStripMenuItem.Click += new System.EventHandler(this.inputParseToolStripMenuItem_Click);
+      // 
+      // tpSqlOut
+      // 
+      this.tpSqlOut.Controls.Add(this.edSQL);
+      this.tpSqlOut.Location = new System.Drawing.Point(4, 22);
+      this.tpSqlOut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+      this.tpSqlOut.Name = "tpSqlOut";
+      this.tpSqlOut.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+      this.tpSqlOut.Size = new System.Drawing.Size(508, 412);
+      this.tpSqlOut.TabIndex = 1;
+      this.tpSqlOut.Text = "Sql Out";
+      this.tpSqlOut.UseVisualStyleBackColor = true;
+      // 
+      // edSQL
+      // 
+      this.edSQL.AutoCompleteBracketsList = new char[] {
+        '(',
+        ')',
+        '{',
+        '}',
+        '[',
+        ']',
+        '\"',
+        '\"',
+        '\'',
+        '\''};
+      this.edSQL.AutoIndentCharsPatterns = "";
+      this.edSQL.AutoScrollMinSize = new System.Drawing.Size(2, 14);
+      this.edSQL.BackBrush = null;
+      this.edSQL.CharHeight = 14;
+      this.edSQL.CharWidth = 8;
+      this.edSQL.CommentPrefix = "--";
+      this.edSQL.ContextMenuStrip = this.msOutput;
+      this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
+      this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+      this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edSQL.Font = new System.Drawing.Font("Courier New", 9.75F);
+      this.edSQL.IsReplaceMode = false;
+      this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
+      this.edSQL.LeftBracket = '(';
+      this.edSQL.Location = new System.Drawing.Point(4, 3);
+      this.edSQL.Name = "edSQL";
+      this.edSQL.Paddings = new System.Windows.Forms.Padding(0);
+      this.edSQL.RightBracket = ')';
+      this.edSQL.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+      this.edSQL.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edSQL.ServiceColors")));
+      this.edSQL.Size = new System.Drawing.Size(500, 406);
+      this.edSQL.TabIndex = 1;
+      this.edSQL.Zoom = 100;
+      // 
+      // msOutput
+      // 
+      this.msOutput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem3});
+      this.msOutput.Name = "msInput";
+      this.msOutput.Size = new System.Drawing.Size(103, 26);
+      this.msOutput.Click += new System.EventHandler(this.msOutput_Click);
+      // 
+      // toolStripMenuItem3
+      // 
+      this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+      this.toolStripMenuItem3.Size = new System.Drawing.Size(102, 22);
+      this.toolStripMenuItem3.Text = "Copy";
+      this.toolStripMenuItem3.Click += new System.EventHandler(this.toolStripMenuItem3_Click);
+      // 
+      // tpCOut
+      // 
+      this.tpCOut.Controls.Add(this.edCSharp);
+      this.tpCOut.Location = new System.Drawing.Point(4, 22);
+      this.tpCOut.Name = "tpCOut";
+      this.tpCOut.Size = new System.Drawing.Size(508, 412);
+      this.tpCOut.TabIndex = 2;
+      this.tpCOut.Text = "C# Out";
+      this.tpCOut.UseVisualStyleBackColor = true;
+      // 
+      // edCSharp
+      // 
+      this.edCSharp.AutoCompleteBracketsList = new char[] {
+        '(',
+        ')',
+        '{',
+        '}',
+        '[',
+        ']',
+        '\"',
+        '\"',
+        '\'',
+        '\''};
+      this.edCSharp.AutoIndentCharsPatterns = "\r\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\r\n^\\s*(case|default)\\s*[^:]" +
+    "*(?<range>:)\\s*(?<range>[^;]+);\r\n";
+      this.edCSharp.AutoScrollMinSize = new System.Drawing.Size(2, 14);
+      this.edCSharp.BackBrush = null;
+      this.edCSharp.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
+      this.edCSharp.CharHeight = 14;
+      this.edCSharp.CharWidth = 8;
+      this.edCSharp.ContextMenuStrip = this.msOutput;
+      this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
+      this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+      this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edCSharp.Font = new System.Drawing.Font("Courier New", 9.75F);
+      this.edCSharp.IsReplaceMode = false;
+      this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
+      this.edCSharp.LeftBracket = '(';
+      this.edCSharp.LeftBracket2 = '{';
+      this.edCSharp.Location = new System.Drawing.Point(0, 0);
+      this.edCSharp.Name = "edCSharp";
+      this.edCSharp.Paddings = new System.Windows.Forms.Padding(0);
+      this.edCSharp.RightBracket = ')';
+      this.edCSharp.RightBracket2 = '}';
+      this.edCSharp.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+      this.edCSharp.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edCSharp.ServiceColors")));
+      this.edCSharp.Size = new System.Drawing.Size(508, 412);
+      this.edCSharp.TabIndex = 1;
+      this.edCSharp.Zoom = 100;
       // 
       // tpLog
       // 
       this.tpLog.Controls.Add(this.edLogMsg);
-      this.tpLog.Location = new System.Drawing.Point(4, 24);
+      this.tpLog.Location = new System.Drawing.Point(4, 22);
       this.tpLog.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tpLog.Name = "tpLog";
       this.tpLog.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpLog.Size = new System.Drawing.Size(508, 410);
+      this.tpLog.Size = new System.Drawing.Size(508, 412);
       this.tpLog.TabIndex = 0;
       this.tpLog.Text = "Log";
       this.tpLog.UseVisualStyleBackColor = true;
@@ -564,7 +567,7 @@
       this.edLogMsg.Multiline = true;
       this.edLogMsg.Name = "edLogMsg";
       this.edLogMsg.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-      this.edLogMsg.Size = new System.Drawing.Size(500, 404);
+      this.edLogMsg.Size = new System.Drawing.Size(500, 406);
       this.edLogMsg.TabIndex = 3;
       // 
       // panel1
@@ -669,14 +672,14 @@
       this.splitContainer2.ResumeLayout(false);
       this.msBuilder.ResumeLayout(false);
       this.tabControl1.ResumeLayout(false);
+      this.tpInput.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.edInput)).EndInit();
+      this.msInput.ResumeLayout(false);
       this.tpSqlOut.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.edSQL)).EndInit();
       this.msOutput.ResumeLayout(false);
       this.tpCOut.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.edCSharp)).EndInit();
-      this.tpInput.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.edInput)).EndInit();
-      this.msInput.ResumeLayout(false);
       this.tpLog.ResumeLayout(false);
       this.tpLog.PerformLayout();
       this.panel1.ResumeLayout(false);
