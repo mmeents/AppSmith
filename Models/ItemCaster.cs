@@ -223,8 +223,10 @@ namespace AppSmith.Models {
       set {
         base.Clear();
         foreach (var x in value) {
-          Item n = new Item().FromChunk(x);
-          this[n.Id] = n;
+          try { 
+            Item n = new Item().FromChunk(x);
+            this[n.Id] = n;
+          } catch { }
         }
       }
     }
@@ -485,21 +487,72 @@ namespace AppSmith.Models {
       _ = Task.Run(async () => await _package.SaveAsync().ConfigureAwait(false));
     }
 
-    public Item SaveNewChildItemsFromSqlTblCreate(Item ownerItem, string text) {
+    public Item GetTablesItem(Item start) { 
+      if (start == null) { return null;}
+      if (start.TypeId == (int)TnType.Tables) { 
+        return start;
+      }
+      Item ParentItem = (Item)start.Parent;
+      if (ParentItem.TypeId == (int)TnType.Tables) { 
+        return ParentItem;
+      } else { 
+        while ((ParentItem != null)&&(ParentItem.TypeId != (int)TnType.Database)) {
+          ParentItem = (Item)ParentItem.Parent;
+        }
+        if (ParentItem.TypeId == (int)TnType.Database){ 
+          Item tbls = ParentItem.FirstNode as Item;
+          if ((tbls != null)&&(tbls.TypeId == (int)TnType.Tables)) { 
+            return tbls;
+          }
+        }
+      }
+      return null;
+    }
+
+    public Item GetProceduresItem(Item start) {
+      if (start == null) { return null; }
+      if (start.TypeId == (int)TnType.Procedures) {
+        return start;
+      }
+      Item ParentItem = (Item)start.Parent;
+      if (ParentItem.TypeId == (int)TnType.Procedures) {
+        return ParentItem;
+      } else {
+        while ((ParentItem != null) && (ParentItem.TypeId != (int)TnType.Database)) {
+          ParentItem = (Item)ParentItem.Parent;
+        }
+        if (ParentItem.TypeId == (int)TnType.Database) {
+          Item tbls = ParentItem.LastNode as Item;
+          if ((tbls != null) && (tbls.TypeId == (int)TnType.Procedures)) {
+            return tbls;
+          }
+        }
+      }
+      return null;
+    }
+
+    public Item ParseSqlContentIntoItems(Item ownerItem, string text) {
+      string indentStr = "  ";
       this.InUpdate = true;   
       Item curParent = ownerItem;
       Item tableItem = null;
+      Item procItem = null;
       Item returnItem = ownerItem;
       var outArr = ParserExt.ParseSqlContent(text);
-      int outArrC = outArr.Count-1;
+      int outArrCount = outArr.Count-1;
       bool InCreateState = false;
       bool InCreateTableState = false;
+      bool InCreateProcState = false;
+      bool InCreateProcBody = false;
       bool HasTableName = false;
-      bool InNameCols = false;
+      bool InTableCreateNameCols = false;
+      bool InProcCreateNameParam = false;
+      bool HasProcName = false;
       bool NeedsAdvance = true;
 
       int i =0;
       string curTableName = "";
+      string curProcName = "";
       string curColName ="";
       string curColType ="";      
       string curColSize = "";
@@ -509,24 +562,40 @@ namespace AppSmith.Models {
 
       int newID = 0;
       int newItemRank = 0;
-      while ((i <= outArrC) ) {
-        if (!InNameCols) { 
+      while ((i <= outArrCount) ) {
 
-          if ((i <= outArrC)
+        if ((!InTableCreateNameCols)&&(!InProcCreateNameParam)) { 
+
+          if ((i <= outArrCount)
             && (!InCreateState) 
             && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
             && (outArr[i].Content.ToUpper() == "CREATE")) {
             InCreateState = true;
             InCreateTableState = false;
+            InCreateProcState = false;
             HasTableName = false;
             curTableName = "";
+            HasProcName = false;
+            curProcName = "";
             curCode = outArr[i].Content+" ";
             i++; NeedsAdvance = false;            
           }
 
-          if ((i <= outArrC)
-            && InCreateState
-            && (!InCreateTableState)
+          if ((i <= outArrCount)  // alter on procedure interpreted as create
+           && (!InCreateState)
+           && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
+           && (outArr[i].Content.ToUpper() == "ALTER")) {
+            InCreateState = true;
+            InCreateTableState = false;
+            InCreateProcState = false;
+            HasProcName = false;
+            curProcName = "";
+            curCode = outArr[i].Content + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount)
+            && InCreateState  && (!InCreateTableState)
             && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
             && (outArr[i].Content.ToUpper()== "TABLE")) {
             InCreateTableState = true;
@@ -534,9 +603,18 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;
           }
 
-          if ((i <= outArrC)
-            && (InCreateTableState && InCreateState)
-            && (!HasTableName)           
+          if ((i <= outArrCount)
+            && InCreateState
+            && (!InCreateTableState) && (!InCreateProcState)
+            && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
+            && ((outArr[i].Content.ToUpper() == "PROCEDURE")||(outArr[i].Content.ToUpper() == "PROC"))) {
+            InCreateProcState = true;
+            curCode = curCode + outArr[i].Content + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount)  // record table Name 
+            && (InCreateTableState && InCreateState) && (!HasTableName)           
             && (outArr[i].OpType == ParserExt.sqlTokenType.Identifier)) {
             HasTableName = true;
             curTableName = outArr[i].Content;
@@ -544,7 +622,36 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;
           }
 
-          if ((i <= outArrC)
+          if ((i <= outArrCount) // record Procedure Name and make the node.
+            && (InCreateProcState && InCreateState) && (!HasProcName) 
+            && (outArr[i].OpType == ParserExt.sqlTokenType.Identifier)) {
+            InProcCreateNameParam = true;
+            HasProcName = true;
+            curProcName = outArr[i].Content;
+            curCode = curCode + outArr[i].Content + " ";
+
+            newID = curParent.Id;
+            newItemRank = curParent.Nodes.Count + 1;
+            procItem = new Item() {
+              Id = _items.GetNextId(),
+              OwnerId = newID,
+              ItemRank = newItemRank,
+              TypeId = (int)TnType.Procedure,
+              Text = curProcName,
+              ValueTypeId = 0,
+              ValueTypeSize = "",
+              Code = curCode
+            };
+            curParent = GetProceduresItem(curParent);
+            if (curParent != null) {
+              curParent.Nodes.Add(procItem);
+            }
+            SaveItem(procItem);
+            curCode = "";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount) // Paran start and Make the table node.
             && HasTableName  &&  (InCreateTableState)             
             && (outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) ) {          
             
@@ -561,19 +668,20 @@ namespace AppSmith.Models {
               ValueTypeSize = "",
               Code = curCode
             };
+            curParent = GetTablesItem(curParent);
             if (curParent != null) {
               curParent.Nodes.Add(tableItem);
             }
             SaveItem(tableItem);
 
-            InNameCols = true;
+            InTableCreateNameCols = true;
             i++; NeedsAdvance = false;
             curCode = "";
           }
         } 
-        if (InNameCols) { // in InNamecols 
+        if (InTableCreateNameCols) { // table create name the cols 
 
-          if ((i <= outArrC)
+          if ((i <= outArrCount)
           && outArr[i].OpType == ParserExt.sqlTokenType.Keyword
           ) {
             if (outArr[i].Content.ToUpper() == "CONSTRAINT") {
@@ -587,7 +695,7 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;
           }
 
-          if ((i <= outArrC) 
+          if ((i <= outArrCount) 
             && outArr[i].OpType == ParserExt.sqlTokenType.Identifier
             ) { 
             curColName = outArr[i].Content;
@@ -595,7 +703,7 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;
           }
 
-          if ((i <= outArrC) 
+          if ((i <= outArrCount) 
             && outArr[i].OpType == ParserExt.sqlTokenType.ColType
             ) {
             curColType = outArr[i].Content;
@@ -603,19 +711,19 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;            
           }
 
-          if ((i <= outArrC) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
             string aSize = "("; var depth = 1; i++;
-            while (i <= outArrC && (outArr[i].OpType != ParserExt.sqlTokenType.ParanEnd) && (depth > 0)) {
-              if ((i <= outArrC) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
+            while (i <= outArrCount && (outArr[i].OpType != ParserExt.sqlTokenType.ParanEnd) && (depth > 0)) {
+              if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
                 depth++;
               }
-              if ((i <= outArrC) && outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd) {
+              if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd) {
                 depth--;
               }
               aSize = aSize + outArr[i].Content;
               i++; NeedsAdvance = false;
             }
-            if ((i<= outArrC) &&(outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd)) {
+            if ((i<= outArrCount) &&(outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd)) {
               aSize = aSize + outArr[i].Content;
               i++; NeedsAdvance = false;
             }
@@ -625,7 +733,7 @@ namespace AppSmith.Models {
             }
           }
 
-          if ((i <= outArrC) 
+          if ((i <= outArrCount) 
            && outArr[i].OpType == ParserExt.sqlTokenType.Keyword
            ) {
             if (outArr[i].Content.ToUpper() == "IDENTITY") {
@@ -636,7 +744,7 @@ namespace AppSmith.Models {
             i++; NeedsAdvance = false;
           }
 
-          if ((i <= outArrC) 
+          if ((i <= outArrCount) 
             && outArr[i].OpType == ParserExt.sqlTokenType.Comma
             ) {
             if (!curColIsConstraint) { 
@@ -667,7 +775,7 @@ namespace AppSmith.Models {
             }
           }
 
-          if ((i <= outArrC) 
+          if ((i <= outArrCount) 
             && outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd
             ) {
             if (!curColIsConstraint) { 
@@ -695,12 +803,184 @@ namespace AppSmith.Models {
             InCreateState = false;
             curCode = "";
             curColSize = "";
-            InNameCols = false;
+            InTableCreateNameCols = false;
             curColIsConstraint = false;
             curColIsIdentity = false;
           }                
         }
+        if (InProcCreateNameParam) { // if in stored proc name the columns section
 
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
+            string aSize = "(";             
+            curCode = curCode + aSize + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.Identifier ) {
+            curColName = outArr[i].Content;
+            curCode = curCode + outArr[i].Content + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ColType ) {
+            curColType = outArr[i].Content;
+            curCode = curCode + outArr[i].Content + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
+            string aSize = "("; var depth = 1; i++;
+            while (i <= outArrCount && (outArr[i].OpType != ParserExt.sqlTokenType.ParanEnd) && (depth > 0)) {
+              if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanStart) {
+                depth++;
+              }
+              if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd) {
+                depth--;
+              }
+              aSize = aSize + outArr[i].Content;
+              i++; NeedsAdvance = false;
+            }
+            if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd)) {
+              aSize = aSize + outArr[i].Content;
+              i++; NeedsAdvance = false;
+            }
+            curCode = curCode + aSize + " ";
+            curColSize = aSize;            
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.Comma ) {            
+            curCode = curCode.Trim() + ",";
+            if (procItem != null) {
+              newID = procItem.Id;
+              newItemRank = procItem.Nodes.Count + 1;
+              var ColumnItem = new Item() {
+                Id = _items.GetNextId(),
+                OwnerId = newID,
+                ItemRank = newItemRank,
+                TypeId = (int)TnType.ProcedureParam,
+                Text = curColName,
+                ValueTypeId = curColType.SqlTypeToLookupId(),
+                ValueTypeSize = curColSize,
+                Code = curCode
+              };
+              if (procItem != null) {
+                procItem.Nodes.Add(ColumnItem);
+              }
+              SaveItem(ColumnItem);
+            }
+            i++; NeedsAdvance = false;
+            curCode = "";
+            curColSize = "";
+            curColIsConstraint = false;
+            curColIsIdentity = false;            
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.ParanEnd) {
+            string aSize = ")";
+            curCode = curCode + aSize + " ";
+            i++; NeedsAdvance = false;
+          }
+
+          if ((i <= outArrCount) && outArr[i].OpType == ParserExt.sqlTokenType.Keyword
+              && (outArr[i].Content.ToUpper() == "AS")) {
+            
+            if (procItem != null) {
+              newID = procItem.Id;
+              newItemRank = procItem.Nodes.Count + 1;
+              var ColumnItem = new Item() {
+                Id = _items.GetNextId(),
+                OwnerId = newID,
+                ItemRank = newItemRank,
+                TypeId = (int)TnType.ProcedureParam,
+                Text = curColName,
+                ValueTypeId = curColType.SqlTypeToLookupId(),
+                ValueTypeSize = curColSize,
+                Code = curCode
+              };
+              if (procItem != null) {
+                procItem.Nodes.Add(ColumnItem);
+              }
+              SaveItem(ColumnItem);
+            }
+
+            curCode = "";
+            i++; NeedsAdvance = false;            
+            curColSize = "";
+            curColName = "";            
+            curColIsConstraint = false;
+            curColIsIdentity = false;
+            InCreateProcBody = true;
+            InProcCreateNameParam = false;
+          }
+        }
+        if (InCreateProcBody) {
+          while ((i <= outArrCount ) && InCreateProcBody) { 
+            if (outArr[i].OpType == ParserExt.sqlTokenType.NewLine) {
+              curCode = curCode.TrimEnd() + outArr[i].Content+Ext.MakeIndentSpace(1, indentStr);
+            } else { 
+              curCode = curCode + outArr[i].Content+" ";
+            }
+
+            if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword) && 
+              ((outArr[i].Content.ToUpper() == "BEGIN")|| (outArr[i].Content.ToUpper() == "WHEN"))) {
+              var depth = 1; i++;
+              while ( (i <= outArrCount)                 
+                && ((outArr[i].Content.ToUpper() != "END")) && (depth > 0)) {
+
+                if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword) && 
+                  ((outArr[i].Content.ToUpper() == "BEGIN") || (outArr[i].Content.ToUpper() == "WHEN"))) {
+                  depth++;
+                }
+                if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword) && (outArr[i].Content.ToUpper() == "END")) {
+                  depth--;
+                }
+                if (outArr[i].OpType == ParserExt.sqlTokenType.NewLine) {
+                  curCode = curCode.TrimEnd() + outArr[i].Content+Ext.MakeIndentSpace(depth+1, indentStr); ;
+                } else {
+                  curCode = curCode + outArr[i].Content + " ";
+                }
+                i++; NeedsAdvance = false;
+              }
+              if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
+               && (outArr[i].Content.ToUpper() == "END")) {
+                curCode = curCode + outArr[i].Content + " ";
+                i++; NeedsAdvance = false;
+              }
+            }
+            
+            if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)
+               &&  (outArr[i].Content.ToUpper() == "RETURN")) {
+              curCode = curCode + outArr[i].Content + " ";
+              InCreateProcBody = false; NeedsAdvance = false;
+            }
+
+            if (NeedsAdvance) {
+              i++;
+            } else {
+              NeedsAdvance = true;
+            }
+          }
+
+          if (procItem != null) {
+            newID = procItem.Id;
+            newItemRank = procItem.Nodes.Count + 1;
+            var ColumnItem = new Item() {
+              Id = _items.GetNextId(),
+              OwnerId = newID,
+              ItemRank = newItemRank,
+              TypeId = (int)TnType.ProcBody,
+              Text = "Body",
+              ValueTypeId = curColType.SqlTypeToLookupId(),
+              ValueTypeSize = "",
+              Code = curCode
+            };
+            if (procItem != null) {
+              procItem.Nodes.Add(ColumnItem);
+            }
+            SaveItem(ColumnItem);
+          }
+        }
+        
         if (NeedsAdvance ) {
           i++;
         } else {

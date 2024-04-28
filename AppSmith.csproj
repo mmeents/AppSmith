@@ -97,6 +97,7 @@
     <Compile Include="Models\ItemCaster.cs" />
     <Compile Include="Models\ParserExt.cs" />
     <Compile Include="Models\SettingsFile.cs" />
+    <Compile Include="Models\SqlFormatter.cs" />
     <Compile Include="Models\TypeCaster.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

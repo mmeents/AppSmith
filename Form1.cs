@@ -140,8 +140,15 @@ namespace AppSmith {
     }
 
     private void Form1_Shown(object sender, EventArgs e) {
+      lbFocusedItem.Text = "Recent:";
       _settings = _settingsPack.Settings;
       SetLocationSettings();
+      string smrul = _settings["MRUL"].Value;
+      if (!String.IsNullOrEmpty(smrul)) { 
+        comboBox1.Items.Clear();
+        comboBox1.Items.AddRange(smrul.Parse(Environment.NewLine));
+        comboBox1.SelectedIndex = 0;        
+      }      
     }
     #endregion
     #region Main Menu opening and handlers
@@ -164,7 +171,11 @@ namespace AppSmith {
           if (!_settings.Contains("MRUL")) {
             _settings["MRUL"] = new SettingProperty() { Key = "MRUL", Value = _fileName };
           } else { 
-            _settings["MRUL"].Value = _fileName + Environment.NewLine + _settings["MRUL"].Value;
+            var mrul = _settings["MRUL"].Value.Parse(Environment.NewLine); 
+            string newMRUL = (mrul.Length > 0 ? mrul[0]:"" ) + (mrul.Length > 1 ? Environment.NewLine+ mrul[1]:"");
+            StringDict mruld = newMRUL.AsDict(Environment.NewLine);
+            mruld.Add(_fileName);
+            _settings["MRUL"].Value = mruld.AsString();
           }
           _settingsPack.Settings = _settings;
           _settingsPack.Save();
@@ -181,6 +192,8 @@ namespace AppSmith {
           _modelActive = true;
           tvBuilder.ContextMenuStrip = msBuilder;
           if (!props.Enabled) props.Enabled = true;
+          btnOpenClose.Text = "Close";
+          comboBox1.Visible = false;
         } catch(Exception ex) {
           LogMsg(ex.Message);
         }
@@ -196,6 +209,45 @@ namespace AppSmith {
       props.Item.Clear();
       props.Enabled = false;
       this.Text = "AppSmith ";
+      btnOpenClose.Text = "Open";     
+      comboBox1.Visible = true;
+      lbFocusedItem.Text = "Recent:";
+      edSQL.Text = "";
+      edCSharp.Text = "";
+    }
+
+    private void btnOpenClose_Click(object sender, EventArgs e) {
+      if (btnOpenClose.Text != "Open") { 
+        closeStripMenuItem_Click(sender, e);
+      } else { 
+        //openStripMenuItem_Click(sender, e);
+        btnMruCombo_Click(sender, e);
+      }
+    }
+
+    private void btnMruCombo_Click(object sender, EventArgs e) {
+      try {
+        _settings = _settingsPack.Settings;
+        _fileName = comboBox1.SelectedItem.ToString();                
+        this.Text = $"AppSmith {_fileName}";
+        _folder = _fileName.Substring(0, _fileName.Length - (_fileName.ParseLast("\\").Length + 1));
+        if (!Directory.Exists(_folder)) {
+          Directory.CreateDirectory(_folder);
+        }
+        SetInProgress(3000);
+        _filePackage = new FilePackage(_fileName, this);
+        SetInProgress(6000);
+        _itemCaster = new ItemCaster(this, tvBuilder, _filePackage, _types);
+        _itemCaster.LoadTreeviewItemsAsync(tvBuilder);
+        _modelActive = true;
+        tvBuilder.ContextMenuStrip = msBuilder;
+        if (!props.Enabled) props.Enabled = true;
+        btnOpenClose.Text = "Close";        
+        comboBox1.Visible = false;
+      } catch (Exception ex) {
+        LogMsg(ex.Message);
+      }
+      SetInProgress(0);
     }
     #endregion
     #region tree View right click menu and handlers 
@@ -304,7 +356,7 @@ namespace AppSmith {
     private void AddDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
       var dbItem = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Database], "Database");
       _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Tables], "Tables");
-      _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Procedure], "Procedures");
+      _itemCaster.SaveNewChildItemsFromText(dbItem, _types[(int)TnType.Procedures], "Procedures");
     }
 
     private void apiToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -469,17 +521,24 @@ namespace AppSmith {
     }
 
     public void PopulateEditors(Item it) {
+      var lit = it;
+      if (lit != null) {
+        if (lit.TypeId >= (int)TnType.TableColumn && lit.TypeId <= (int)TnType.FunctionParam) {
+          lit = (Item)_inEditItem.Parent;        
+        }
+      }
+
       if (it == null) {
         lbFocusedItem.Text = string.Empty;
          return;
       }
       lbFocusedItem.Text = it.Text;
-      switch (it.TypeId) {
-        case (int)TnType.Tables: PrepareListTables(it); break;
-        case (int)TnType.Table: PrepareTableType(it); break;
-      //  case (int)TnType.Procedure: PrepareProcedureType(it); break;
+      switch (lit.TypeId) {
+        case (int)TnType.Tables: PrepareListTables(lit); break;
+        case (int)TnType.Table: PrepareTableType(lit); break;
+        case (int)TnType.Procedure: PrepareProcedureType(lit); break;
       //  case (int)TnType.Function: PrepareFunctionType(it); break;
-        default: PrepareNullType(it); break;
+        default: PrepareNullType(lit); break;
       }
     }
 
@@ -504,8 +563,8 @@ namespace AppSmith {
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
-    //  edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
-    //  edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
+      edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
+      edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
     }
 
     public void PrepareFunctionType(Item tnFunction) {
@@ -535,7 +594,7 @@ namespace AppSmith {
     }
     private void inputParseToolStripMenuItem_Click(object sender, EventArgs e) {
       string sInput = edInput.Text;
-      _itemCaster.SaveNewChildItemsFromSqlTblCreate(_inEditItem, sInput);     
+      _itemCaster.ParseSqlContentIntoItems(_inEditItem, sInput);     
     }
 
 

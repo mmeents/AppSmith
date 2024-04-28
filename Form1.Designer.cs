@@ -45,12 +45,6 @@
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.props = new PropertyGridEx.PropertyGridEx();
       this.tabControl1 = new System.Windows.Forms.TabControl();
-      this.tpSqlOut = new System.Windows.Forms.TabPage();
-      this.edSQL = new FastColoredTextBoxNS.FastColoredTextBox();
-      this.msOutput = new System.Windows.Forms.ContextMenuStrip(this.components);
-      this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
-      this.tpCOut = new System.Windows.Forms.TabPage();
-      this.edCSharp = new FastColoredTextBoxNS.FastColoredTextBox();
       this.tpInput = new System.Windows.Forms.TabPage();
       this.edInput = new FastColoredTextBoxNS.FastColoredTextBox();
       this.msInput = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -58,9 +52,17 @@
       this.inputCopyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.inputPasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.inputParseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.tpSqlOut = new System.Windows.Forms.TabPage();
+      this.edSQL = new FastColoredTextBoxNS.FastColoredTextBox();
+      this.msOutput = new System.Windows.Forms.ContextMenuStrip(this.components);
+      this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
+      this.tpCOut = new System.Windows.Forms.TabPage();
+      this.edCSharp = new FastColoredTextBoxNS.FastColoredTextBox();
       this.tpLog = new System.Windows.Forms.TabPage();
       this.edLogMsg = new System.Windows.Forms.TextBox();
       this.panel1 = new System.Windows.Forms.Panel();
+      this.comboBox1 = new System.Windows.Forms.ComboBox();
+      this.btnOpenClose = new System.Windows.Forms.Button();
       this.lbFocusedItem = new System.Windows.Forms.Label();
       this.pbMain = new System.Windows.Forms.ProgressBar();
       this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -78,14 +80,14 @@
       this.splitContainer2.SuspendLayout();
       this.msBuilder.SuspendLayout();
       this.tabControl1.SuspendLayout();
+      this.tpInput.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.edInput)).BeginInit();
+      this.msInput.SuspendLayout();
       this.tpSqlOut.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.edSQL)).BeginInit();
       this.msOutput.SuspendLayout();
       this.tpCOut.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.edCSharp)).BeginInit();
-      this.tpInput.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.edInput)).BeginInit();
-      this.msInput.SuspendLayout();
       this.tpLog.SuspendLayout();
       this.panel1.SuspendLayout();
       this.menuStrip1.SuspendLayout();
@@ -107,8 +109,8 @@
       // splitContainer1.Panel2
       // 
       this.splitContainer1.Panel2.Controls.Add(this.tabControl1);
-      this.splitContainer1.Size = new System.Drawing.Size(779, 438);
-      this.splitContainer1.SplitterDistance = 258;
+      this.splitContainer1.Size = new System.Drawing.Size(818, 438);
+      this.splitContainer1.SplitterDistance = 270;
       this.splitContainer1.SplitterWidth = 5;
       this.splitContainer1.TabIndex = 0;
       // 
@@ -127,7 +129,7 @@
       // splitContainer2.Panel2
       // 
       this.splitContainer2.Panel2.Controls.Add(this.props);
-      this.splitContainer2.Size = new System.Drawing.Size(258, 438);
+      this.splitContainer2.Size = new System.Drawing.Size(270, 438);
       this.splitContainer2.SplitterDistance = 202;
       this.splitContainer2.SplitterWidth = 5;
       this.splitContainer2.TabIndex = 0;
@@ -142,7 +144,7 @@
       this.tvBuilder.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tvBuilder.Name = "tvBuilder";
       this.tvBuilder.SelectedImageIndex = 0;
-      this.tvBuilder.Size = new System.Drawing.Size(258, 202);
+      this.tvBuilder.Size = new System.Drawing.Size(270, 202);
       this.tvBuilder.TabIndex = 0;
       this.tvBuilder.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.tvBuilder_BeforeExpand);
       this.tvBuilder.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvBuilder_AfterSelect);
@@ -290,7 +292,7 @@
       this.props.DocCommentDescription.AutoEllipsis = true;
       this.props.DocCommentDescription.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentDescription.Location = new System.Drawing.Point(4, 24);
-      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(12, 0, 12, 0);
+      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
       this.props.DocCommentDescription.Name = "";
       this.props.DocCommentDescription.Size = new System.Drawing.Size(0, 43);
       this.props.DocCommentDescription.TabIndex = 1;
@@ -301,7 +303,7 @@
       this.props.DocCommentTitle.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
       this.props.DocCommentTitle.Location = new System.Drawing.Point(4, 3);
-      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(12, 0, 12, 0);
+      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
       this.props.DocCommentTitle.Name = "";
       this.props.DocCommentTitle.Size = new System.Drawing.Size(0, 18);
       this.props.DocCommentTitle.TabIndex = 0;
@@ -311,7 +313,7 @@
       this.props.Location = new System.Drawing.Point(0, 0);
       this.props.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
       this.props.Name = "props";
-      this.props.Size = new System.Drawing.Size(258, 231);
+      this.props.Size = new System.Drawing.Size(270, 231);
       this.props.TabIndex = 1;
       // 
       // 
@@ -326,8 +328,8 @@
       this.props.ToolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.props.ToolStrip.Location = new System.Drawing.Point(0, 1);
       this.props.ToolStrip.Name = "";
-      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(9, 0, 1, 0);
-      this.props.ToolStrip.Size = new System.Drawing.Size(258, 25);
+      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(12, 0, 1, 0);
+      this.props.ToolStrip.Size = new System.Drawing.Size(270, 25);
       this.props.ToolStrip.TabIndex = 1;
       this.props.ToolStrip.TabStop = true;
       this.props.ToolStrip.Text = "PropertyGridToolBar";
@@ -344,17 +346,101 @@
       this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tabControl1.Name = "tabControl1";
       this.tabControl1.SelectedIndex = 0;
-      this.tabControl1.Size = new System.Drawing.Size(516, 438);
+      this.tabControl1.Size = new System.Drawing.Size(543, 438);
       this.tabControl1.TabIndex = 0;
+      // 
+      // tpInput
+      // 
+      this.tpInput.Controls.Add(this.edInput);
+      this.tpInput.Location = new System.Drawing.Point(4, 24);
+      this.tpInput.Name = "tpInput";
+      this.tpInput.Size = new System.Drawing.Size(535, 410);
+      this.tpInput.TabIndex = 3;
+      this.tpInput.Text = "Input";
+      this.tpInput.UseVisualStyleBackColor = true;
+      // 
+      // edInput
+      // 
+      this.edInput.AutoCompleteBracketsList = new char[] {
+        '(',
+        ')',
+        '{',
+        '}',
+        '[',
+        ']',
+        '\"',
+        '\"',
+        '\'',
+        '\''};
+      this.edInput.AutoIndentCharsPatterns = "";
+      this.edInput.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+      this.edInput.BackBrush = null;
+      this.edInput.CharHeight = 14;
+      this.edInput.CharWidth = 8;
+      this.edInput.CommentPrefix = "--";
+      this.edInput.ContextMenuStrip = this.msInput;
+      this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
+      this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+      this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edInput.IsReplaceMode = false;
+      this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
+      this.edInput.LeftBracket = '(';
+      this.edInput.Location = new System.Drawing.Point(0, 0);
+      this.edInput.Name = "edInput";
+      this.edInput.Paddings = new System.Windows.Forms.Padding(0);
+      this.edInput.RightBracket = ')';
+      this.edInput.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+      this.edInput.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edInput.ServiceColors")));
+      this.edInput.Size = new System.Drawing.Size(535, 410);
+      this.edInput.TabIndex = 2;
+      this.edInput.Zoom = 100;
+      // 
+      // msInput
+      // 
+      this.msInput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.inputClearToolStripMenuItem,
+            this.inputCopyToolStripMenuItem,
+            this.inputPasteToolStripMenuItem,
+            this.inputParseToolStripMenuItem});
+      this.msInput.Name = "msInput";
+      this.msInput.Size = new System.Drawing.Size(127, 92);
+      // 
+      // inputClearToolStripMenuItem
+      // 
+      this.inputClearToolStripMenuItem.Name = "inputClearToolStripMenuItem";
+      this.inputClearToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+      this.inputClearToolStripMenuItem.Text = "Clear";
+      this.inputClearToolStripMenuItem.Click += new System.EventHandler(this.inputClearToolStripMenuItem_Click);
+      // 
+      // inputCopyToolStripMenuItem
+      // 
+      this.inputCopyToolStripMenuItem.Name = "inputCopyToolStripMenuItem";
+      this.inputCopyToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+      this.inputCopyToolStripMenuItem.Text = "Copy";
+      this.inputCopyToolStripMenuItem.Click += new System.EventHandler(this.inputCopyToolStripMenuItem_Click);
+      // 
+      // inputPasteToolStripMenuItem
+      // 
+      this.inputPasteToolStripMenuItem.Name = "inputPasteToolStripMenuItem";
+      this.inputPasteToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+      this.inputPasteToolStripMenuItem.Text = "Paste";
+      this.inputPasteToolStripMenuItem.Click += new System.EventHandler(this.inputPasteToolStripMenuItem_Click);
+      // 
+      // inputParseToolStripMenuItem
+      // 
+      this.inputParseToolStripMenuItem.Name = "inputParseToolStripMenuItem";
+      this.inputParseToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+      this.inputParseToolStripMenuItem.Text = "Parse SQL";
+      this.inputParseToolStripMenuItem.Click += new System.EventHandler(this.inputParseToolStripMenuItem_Click);
       // 
       // tpSqlOut
       // 
       this.tpSqlOut.Controls.Add(this.edSQL);
-      this.tpSqlOut.Location = new System.Drawing.Point(4, 24);
+      this.tpSqlOut.Location = new System.Drawing.Point(4, 22);
       this.tpSqlOut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tpSqlOut.Name = "tpSqlOut";
       this.tpSqlOut.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpSqlOut.Size = new System.Drawing.Size(508, 410);
+      this.tpSqlOut.Size = new System.Drawing.Size(535, 412);
       this.tpSqlOut.TabIndex = 1;
       this.tpSqlOut.Text = "Sql Out";
       this.tpSqlOut.UseVisualStyleBackColor = true;
@@ -373,7 +459,7 @@
         '\'',
         '\''};
       this.edSQL.AutoIndentCharsPatterns = "";
-      this.edSQL.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+      this.edSQL.AutoScrollMinSize = new System.Drawing.Size(2, 14);
       this.edSQL.BackBrush = null;
       this.edSQL.CharHeight = 14;
       this.edSQL.CharWidth = 8;
@@ -391,7 +477,7 @@
       this.edSQL.RightBracket = ')';
       this.edSQL.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
       this.edSQL.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edSQL.ServiceColors")));
-      this.edSQL.Size = new System.Drawing.Size(500, 404);
+      this.edSQL.Size = new System.Drawing.Size(527, 406);
       this.edSQL.TabIndex = 1;
       this.edSQL.Zoom = 100;
       // 
@@ -413,9 +499,9 @@
       // tpCOut
       // 
       this.tpCOut.Controls.Add(this.edCSharp);
-      this.tpCOut.Location = new System.Drawing.Point(4, 24);
+      this.tpCOut.Location = new System.Drawing.Point(4, 22);
       this.tpCOut.Name = "tpCOut";
-      this.tpCOut.Size = new System.Drawing.Size(508, 410);
+      this.tpCOut.Size = new System.Drawing.Size(535, 412);
       this.tpCOut.TabIndex = 2;
       this.tpCOut.Text = "C# Out";
       this.tpCOut.UseVisualStyleBackColor = true;
@@ -455,102 +541,18 @@
       this.edCSharp.RightBracket2 = '}';
       this.edCSharp.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
       this.edCSharp.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edCSharp.ServiceColors")));
-      this.edCSharp.Size = new System.Drawing.Size(508, 410);
+      this.edCSharp.Size = new System.Drawing.Size(535, 412);
       this.edCSharp.TabIndex = 1;
       this.edCSharp.Zoom = 100;
-      // 
-      // tpInput
-      // 
-      this.tpInput.Controls.Add(this.edInput);
-      this.tpInput.Location = new System.Drawing.Point(4, 24);
-      this.tpInput.Name = "tpInput";
-      this.tpInput.Size = new System.Drawing.Size(508, 410);
-      this.tpInput.TabIndex = 3;
-      this.tpInput.Text = "Input";
-      this.tpInput.UseVisualStyleBackColor = true;
-      // 
-      // edInput
-      // 
-      this.edInput.AutoCompleteBracketsList = new char[] {
-        '(',
-        ')',
-        '{',
-        '}',
-        '[',
-        ']',
-        '\"',
-        '\"',
-        '\'',
-        '\''};
-      this.edInput.AutoIndentCharsPatterns = "";
-      this.edInput.AutoScrollMinSize = new System.Drawing.Size(27, 14);
-      this.edInput.BackBrush = null;
-      this.edInput.CharHeight = 14;
-      this.edInput.CharWidth = 8;
-      this.edInput.CommentPrefix = "--";
-      this.edInput.ContextMenuStrip = this.msInput;
-      this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
-      this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-      this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edInput.IsReplaceMode = false;
-      this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
-      this.edInput.LeftBracket = '(';
-      this.edInput.Location = new System.Drawing.Point(0, 0);
-      this.edInput.Name = "edInput";
-      this.edInput.Paddings = new System.Windows.Forms.Padding(0);
-      this.edInput.RightBracket = ')';
-      this.edInput.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-      this.edInput.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edInput.ServiceColors")));
-      this.edInput.Size = new System.Drawing.Size(508, 410);
-      this.edInput.TabIndex = 2;
-      this.edInput.Zoom = 100;
-      // 
-      // msInput
-      // 
-      this.msInput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.inputClearToolStripMenuItem,
-            this.inputCopyToolStripMenuItem,
-            this.inputPasteToolStripMenuItem,
-            this.inputParseToolStripMenuItem});
-      this.msInput.Name = "msInput";
-      this.msInput.Size = new System.Drawing.Size(170, 92);
-      // 
-      // inputClearToolStripMenuItem
-      // 
-      this.inputClearToolStripMenuItem.Name = "inputClearToolStripMenuItem";
-      this.inputClearToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-      this.inputClearToolStripMenuItem.Text = "Clear";
-      this.inputClearToolStripMenuItem.Click += new System.EventHandler(this.inputClearToolStripMenuItem_Click);
-      // 
-      // inputCopyToolStripMenuItem
-      // 
-      this.inputCopyToolStripMenuItem.Name = "inputCopyToolStripMenuItem";
-      this.inputCopyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-      this.inputCopyToolStripMenuItem.Text = "Copy";
-      this.inputCopyToolStripMenuItem.Click += new System.EventHandler(this.inputCopyToolStripMenuItem_Click);
-      // 
-      // inputPasteToolStripMenuItem
-      // 
-      this.inputPasteToolStripMenuItem.Name = "inputPasteToolStripMenuItem";
-      this.inputPasteToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-      this.inputPasteToolStripMenuItem.Text = "Paste";
-      this.inputPasteToolStripMenuItem.Click += new System.EventHandler(this.inputPasteToolStripMenuItem_Click);
-      // 
-      // inputParseToolStripMenuItem
-      // 
-      this.inputParseToolStripMenuItem.Name = "inputParseToolStripMenuItem";
-      this.inputParseToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-      this.inputParseToolStripMenuItem.Text = "Parse Create Table";
-      this.inputParseToolStripMenuItem.Click += new System.EventHandler(this.inputParseToolStripMenuItem_Click);
       // 
       // tpLog
       // 
       this.tpLog.Controls.Add(this.edLogMsg);
-      this.tpLog.Location = new System.Drawing.Point(4, 24);
+      this.tpLog.Location = new System.Drawing.Point(4, 22);
       this.tpLog.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tpLog.Name = "tpLog";
       this.tpLog.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpLog.Size = new System.Drawing.Size(508, 410);
+      this.tpLog.Size = new System.Drawing.Size(535, 412);
       this.tpLog.TabIndex = 0;
       this.tpLog.Text = "Log";
       this.tpLog.UseVisualStyleBackColor = true;
@@ -564,19 +566,42 @@
       this.edLogMsg.Multiline = true;
       this.edLogMsg.Name = "edLogMsg";
       this.edLogMsg.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-      this.edLogMsg.Size = new System.Drawing.Size(500, 404);
+      this.edLogMsg.Size = new System.Drawing.Size(527, 406);
       this.edLogMsg.TabIndex = 3;
       // 
       // panel1
       // 
+      this.panel1.Controls.Add(this.comboBox1);
+      this.panel1.Controls.Add(this.btnOpenClose);
       this.panel1.Controls.Add(this.lbFocusedItem);
       this.panel1.Controls.Add(this.pbMain);
       this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
       this.panel1.Location = new System.Drawing.Point(0, 24);
       this.panel1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(779, 49);
+      this.panel1.Size = new System.Drawing.Size(818, 49);
       this.panel1.TabIndex = 1;
+      // 
+      // comboBox1
+      // 
+      this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.comboBox1.FormattingEnabled = true;
+      this.comboBox1.Location = new System.Drawing.Point(79, 7);
+      this.comboBox1.Name = "comboBox1";
+      this.comboBox1.Size = new System.Drawing.Size(662, 23);
+      this.comboBox1.TabIndex = 16;
+      // 
+      // btnOpenClose
+      // 
+      this.btnOpenClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnOpenClose.Location = new System.Drawing.Point(747, 7);
+      this.btnOpenClose.Name = "btnOpenClose";
+      this.btnOpenClose.Size = new System.Drawing.Size(59, 26);
+      this.btnOpenClose.TabIndex = 14;
+      this.btnOpenClose.Text = "Open";
+      this.btnOpenClose.UseVisualStyleBackColor = true;
+      this.btnOpenClose.Click += new System.EventHandler(this.btnOpenClose_Click);
       // 
       // lbFocusedItem
       // 
@@ -589,11 +614,13 @@
       // 
       // pbMain
       // 
+      this.pbMain.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.pbMain.ForeColor = System.Drawing.Color.Blue;
       this.pbMain.Location = new System.Drawing.Point(16, 36);
       this.pbMain.Maximum = 10000;
       this.pbMain.Name = "pbMain";
-      this.pbMain.Size = new System.Drawing.Size(748, 10);
+      this.pbMain.Size = new System.Drawing.Size(790, 10);
       this.pbMain.TabIndex = 12;
       this.pbMain.Value = 500;
       this.pbMain.Visible = false;
@@ -606,7 +633,7 @@
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.Name = "menuStrip1";
       this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
-      this.menuStrip1.Size = new System.Drawing.Size(779, 24);
+      this.menuStrip1.Size = new System.Drawing.Size(818, 24);
       this.menuStrip1.TabIndex = 2;
       this.menuStrip1.Text = "menuStrip1";
       // 
@@ -646,7 +673,7 @@
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.AutoSize = true;
-      this.ClientSize = new System.Drawing.Size(779, 517);
+      this.ClientSize = new System.Drawing.Size(818, 517);
       this.Controls.Add(this.panel1);
       this.Controls.Add(this.splitContainer1);
       this.Controls.Add(this.menuStrip1);
@@ -669,14 +696,14 @@
       this.splitContainer2.ResumeLayout(false);
       this.msBuilder.ResumeLayout(false);
       this.tabControl1.ResumeLayout(false);
+      this.tpInput.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.edInput)).EndInit();
+      this.msInput.ResumeLayout(false);
       this.tpSqlOut.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.edSQL)).EndInit();
       this.msOutput.ResumeLayout(false);
       this.tpCOut.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.edCSharp)).EndInit();
-      this.tpInput.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.edInput)).EndInit();
-      this.msInput.ResumeLayout(false);
       this.tpLog.ResumeLayout(false);
       this.tpLog.PerformLayout();
       this.panel1.ResumeLayout(false);
@@ -733,6 +760,8 @@
     private System.Windows.Forms.ToolStripMenuItem apiToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem controllerToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem meToolStripMenuItem;
+    private System.Windows.Forms.Button btnOpenClose;
+    private System.Windows.Forms.ComboBox comboBox1;
   }
 }
 

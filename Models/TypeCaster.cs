@@ -34,7 +34,8 @@ namespace AppSmith.Models {
     // Api Objects.
     Api = 60,
     Controller = 61,
-    Method = 62
+    Method = 62,
+    ProcBody = 63
   }
 
   public enum Tii {
@@ -135,6 +136,10 @@ namespace AppSmith.Models {
             this.ImageIndex = (int)Tii.Column;
             this.SelectedImageIndex = (int)Tii.Column;
             break;
+          case (int)TnType.ProcBody:
+            this.ImageIndex= (int)Tii.Internal;
+            this.SelectedImageIndex= (int)Tii.Internal;
+            break;
         }
       }
     }
@@ -197,6 +202,8 @@ namespace AppSmith.Models {
       this[60] = new ItemType() { TypeId = 60, OwnerTypeId = 18, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Api", Desc = "Api Type" };
       this[61] = new ItemType() { TypeId = 61, OwnerTypeId = 60, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Controller", Desc = "Controller Type" };
       this[62] = new ItemType() { TypeId = 62, OwnerTypeId = 61, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Method", Desc = "Method Type" };
+
+      this[63] = new ItemType() { TypeId = 63, OwnerTypeId = 26, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "ProcBody", Desc = "Procedure Body" };
 
       this[29] = new ItemType() { TypeId = 29, OwnerTypeId = 28, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Table Columns", Desc = "Table Column Type Lookup" };
 
