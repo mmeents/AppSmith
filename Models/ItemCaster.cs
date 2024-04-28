@@ -223,8 +223,10 @@ namespace AppSmith.Models {
       set {
         base.Clear();
         foreach (var x in value) {
-          Item n = new Item().FromChunk(x);
-          this[n.Id] = n;
+          try { 
+            Item n = new Item().FromChunk(x);
+            this[n.Id] = n;
+          } catch { }
         }
       }
     }
@@ -530,6 +532,7 @@ namespace AppSmith.Models {
     }
 
     public Item ParseSqlContentIntoItems(Item ownerItem, string text) {
+      string indentStr = "  ";
       this.InUpdate = true;   
       Item curParent = ownerItem;
       Item tableItem = null;
@@ -913,7 +916,7 @@ namespace AppSmith.Models {
         if (InCreateProcBody) {
           while ((i <= outArrCount ) && InCreateProcBody) { 
             if (outArr[i].OpType == ParserExt.sqlTokenType.NewLine) {
-              curCode = curCode.TrimEnd() + outArr[i].Content;
+              curCode = curCode.TrimEnd() + outArr[i].Content+Ext.MakeIndentSpace(1, indentStr);
             } else { 
               curCode = curCode + outArr[i].Content+" ";
             }
@@ -931,7 +934,11 @@ namespace AppSmith.Models {
                 if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword) && (outArr[i].Content.ToUpper() == "END")) {
                   depth--;
                 }
-                curCode = curCode + outArr[i].Content + " ";
+                if (outArr[i].OpType == ParserExt.sqlTokenType.NewLine) {
+                  curCode = curCode.TrimEnd() + outArr[i].Content+Ext.MakeIndentSpace(depth+1, indentStr); ;
+                } else {
+                  curCode = curCode + outArr[i].Content + " ";
+                }
                 i++; NeedsAdvance = false;
               }
               if ((i <= outArrCount) && (outArr[i].OpType == ParserExt.sqlTokenType.Keyword)

@@ -58,8 +58,12 @@ namespace AppSmith.Models {
     private Items GetItems() {
       Items n = new Items();
       foreach (string chunk in Package.ItemChunks) {
-        var item = new Item().FromChunk(chunk);
-        n[item.Id] = item;
+        try { 
+          var item = new Item().FromChunk(chunk);
+          n[item.Id] = item;
+        } catch { 
+
+        }
       }
       return n;
     }
