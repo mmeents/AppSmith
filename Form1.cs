@@ -489,21 +489,21 @@ namespace AppSmith {
     private void props_PropertyValueChanged(object s, PropertyValueChangedEventArgs e) {
       if (_inEditItem != null) {
         foreach (CustomProperty y in props.Item) {
-          if (y.Name == "Name") {
+          if ((y.Name == "Name")&&(!String.IsNullOrEmpty( y.Name)) ){
             if (Convert.ToString(y.Value) != _inEditItem.Name) {
               _inEditItem.Text = Convert.ToString(y.Value);
             }
           } else if (y.Name == "Type") {
-            if (Convert.ToInt32(y.SelectedValue) != _inEditItem.ValueTypeId) {
-              _inEditItem.ValueTypeId = Convert.ToInt32(y.SelectedValue);
-
+            var selVal = Convert.ToInt32(y.SelectedValue);
+            if ((selVal != _inEditItem.ValueTypeId) && (y.SelectedValue != null)){
+              _inEditItem.ValueTypeId = selVal;
             }
-          } else if (y.Name == "Size") { 
-            if (y.Value.AsString() != _inEditItem.ValueTypeSize) {
+          } else if (y.Name == "Size")  { 
+            if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.ValueTypeSize)) {
               _inEditItem.ValueTypeSize = y.Value.AsString();
             }
           } else if (y.Name == "Code") {
-            if (y.Value.AsString() != _inEditItem.Code) {
+            if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.Code)) {
               _inEditItem.Code = y.Value.AsString();
             }
           }
