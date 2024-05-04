@@ -491,10 +491,14 @@ namespace AppSmith.Models {
       }
       string a = "";
       string d = "";
+      string t = "";
+      string ar = "";
       for (Int32 i = 0; i < tnTable.Nodes.Count; i++) {
         Item iI = (Item)tnTable.Nodes[i];
         a = a + (a == "" ? "" : ", ") + $"{iI.Text.AsUpperCaseFirstLetter()} = {iI.Text.AsLowerCaseFirstLetter()}";
         d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[iI.ValueTypeId].Desc)} {iI.Text.AsLowerCaseFirstLetter()}";
+        t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(\"{iI.Text.AsUpperCaseFirstLetter()}\", Columntype.{Cs.GetCTypeFromSQLType(types[iI.ValueTypeId].Desc)});";
+        ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][\"{iI.Text.AsUpperCaseFirstLetter()}\"].Value = item.{iI.Text.AsUpperCaseFirstLetter()}.AsString();";
       }
       string className = tblName.RemoveChar('.').AsUpperCaseFirstLetter();
       string classVarName = className.AsLowerCaseFirstLetter();
@@ -559,7 +563,32 @@ namespace AppSmith.Models {
         "      }" + nl +
         "      return Ok(result == 1);" + nl +
         "    }" + nl +
-        "  }" + nl +
+        "  }" + nl + nl + 
+       $"  public class {className}FileTable" + "{" + nl +
+        "    private readonly FileTable _table;"+nl+
+       $"    public {className}FileType(string fileName)"+"{"+nl+
+        "      _table = new FileTable(fileName); " + nl +
+        "      _table.Active = true;" + nl +
+        "      if (_table.Columns.Count()==0){" + nl +t+
+        "      }" + nl +
+        "    }" + nl +
+       $"    public Insert({className} item)"+"{" + nl +
+        "      int RowKey = _table.AddRow();" + nl +ar+
+        "      _table.Save();" + nl +
+        "    }" + nl +
+       $"    public Update({className} item)" + "{" + nl +
+        "      int RowKey = item.RowKey;" + nl + ar +
+        "      _table.Save();" + nl +
+        "    }" + nl +
+       $"    public Delete({className} item)" + "{" + nl +
+        "      int RowKey = item.RowKey;" + nl +
+        "      _table[RowKey].Remove();" + nl +
+        "      _table.Save();" + nl +
+        "    }" + nl +
+        "      " + nl +
+
+       "  }" + nl + nl +
+
         (IncludeNamespace ? "}" : "");
 
 
