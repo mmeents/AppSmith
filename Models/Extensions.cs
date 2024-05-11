@@ -253,6 +253,66 @@ namespace AppSmith.Models {
       return result;
     }
 
+    public static string GetColumnTypeFromSQLType(string sqlType) {
+      string w = sqlType.ToLower().ParseFirst(" ()");
+      string result = "";
+      if (w == "char") result = "String ";
+      else if (w == "varchar") result = "String";
+      else if (w == "int") result = "Int32";
+      else if (w == "bigint") result = "Int64";
+      else if (w == "binary") result = "Byte";
+      else if (w == "bit") result = "Boolean";
+      else if (w == "datetime") result = "DateTime";
+      else if (w == "decimal") result = "Decimal";
+      else if (w == "float") result = "Decimal";
+      else if (w == "image") result = "Image";
+      else if (w == "money") result = "Decimal";
+      else if (w == "numeric") result = "Decimal";
+      else if (w == "nchar") result = "Byte";
+      else if (w == "ntext") result = "String";
+      else if (w == "nvarchar") result = "String";
+      else if (w == "real") result = "Decimal";
+      else if (w == "smallint") result = "Int32";
+      else if (w == "smallmoney") result = "Decimal";
+      else if (w == "smalldatetime") result = "DateTime";
+      else if (w == "text") result = "String";
+      else if (w == "timestamp") result = "DateTime";
+      else if (w == "tinyint") result = "Int32";
+      else if (w == "uniqueidentifier") result = "String";
+      else if (w == "varbinary") result = "Byte";
+      return result;
+    }
+
+    public static string GetToTypeFromStringValue(string sqlType) {
+      string w = sqlType.ToLower().ParseFirst(" ()");
+      string result = "";
+      if (w == "char") result = "";
+      else if (w == "varchar") result = "";
+      else if (w == "int") result = ".AsInt32()";
+      else if (w == "bigint") result = ".AsInt64()";
+      else if (w == "binary") result = ".AsByte()";
+      else if (w == "bit") result = ".AsBoolean()";
+      else if (w == "datetime") result = ".AsDateTime()";
+      else if (w == "decimal") result = ".AsDecimal()";
+      else if (w == "float") result = ".AsDecimal()";
+      //else if (w == "image") result = "AsImage()";
+      else if (w == "money") result = ".AsDecimal()";
+      else if (w == "numeric") result = ".AsDecimal()";
+      else if (w == "nchar") result = ".AsByte()";
+      else if (w == "ntext") result = "";
+      else if (w == "nvarchar") result = "";
+      else if (w == "real") result = ".AsDecimal()";
+      else if (w == "smallint") result = ".AsInt32()";
+      else if (w == "smallmoney") result = ".AsDecimal()";
+      else if (w == "smalldatetime") result = ".AsDateTime()";
+      else if (w == "text") result = "";
+      else if (w == "timestamp") result = ".AsDateTime()";
+      else if (w == "tinyint") result = ".AsInt32()";
+      else if (w == "uniqueidentifier") result = "";
+      else if (w == "varbinary") result = ".AsByte()";
+      return result;
+    }
+
     public static string SQLDefNullValueCSharp(string sqlType) {
       string w = sqlType.ToLower().ParseFirst(" ()");
       string result = "";
@@ -493,12 +553,23 @@ namespace AppSmith.Models {
       string d = "";
       string t = "";
       string ar = "";
+      string art = "";
+      string b = "";
+      string pU;
+      string pL;
+      string sqlT;
       for (Int32 i = 0; i < tnTable.Nodes.Count; i++) {
         Item iI = (Item)tnTable.Nodes[i];
-        a = a + (a == "" ? "" : ", ") + $"{iI.Text.AsUpperCaseFirstLetter()} = {iI.Text.AsLowerCaseFirstLetter()}";
-        d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[iI.ValueTypeId].Desc)} {iI.Text.AsLowerCaseFirstLetter()}";
-        t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(\"{iI.Text.AsUpperCaseFirstLetter()}\", Columntype.{Cs.GetCTypeFromSQLType(types[iI.ValueTypeId].Desc)});";
-        ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][\"{iI.Text.AsUpperCaseFirstLetter()}\"].Value = item.{iI.Text.AsUpperCaseFirstLetter()}.AsString();";
+        pU = iI.Text.AsUpperCaseFirstLetter();
+        pL = iI.Text.AsLowerCaseFirstLetter();
+        sqlT = types[iI.ValueTypeId].Desc;
+        a = a + (a == "" ? "" : ", ") + $"{pU} = {pL}";
+        d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(sqlT)} {pL}";
+        t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(\"{pU}\", ColumnType.{Cs.GetColumnTypeFromSQLType(sqlT)});";
+        art = Cs.GetColumnTypeFromSQLType(sqlT);
+        art = art == "String" ? "" : ".AsString()";
+        ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][\"{pU}\"].Value = item.{pU}{art};";        
+        b = b + (b =="" ? "" : ","+Environment.NewLine)     + $"          {pU} = _table.Rows[RowKey][\"{pU}\"].Value{Cs.GetToTypeFromStringValue(sqlT)}";
       }
       string className = tblName.RemoveChar('.').AsUpperCaseFirstLetter();
       string classVarName = className.AsLowerCaseFirstLetter();
@@ -566,26 +637,37 @@ namespace AppSmith.Models {
         "  }" + nl + nl + 
        $"  public class {className}FileTable" + "{" + nl +
         "    private readonly FileTable _table;"+nl+
-       $"    public {className}FileType(string fileName)"+"{"+nl+
+        "    public Columns Columns { get { return _table.Columns; }}"+ nl +
+        "    public Rows Rows { get { return _table.Rows; }}" + nl +
+       $"    public {className}FileTable(string fileName)"+"{"+nl+
         "      _table = new FileTable(fileName); " + nl +
         "      _table.Active = true;" + nl +
-        "      if (_table.Columns.Count()==0){" + nl +t+
+        "      if (_table.Columns.Count()==0){" + nl +     
+        t+ nl +
         "      }" + nl +
         "    }" + nl +
-       $"    public Insert({className} item)"+"{" + nl +
-        "      int RowKey = _table.AddRow();" + nl +ar+
+       $"    public {className}? Get(int id)"+"{"+nl+
+        "      if(_table.Rows.Contains(id)){"+nl+
+       $"        return new {className}()" + "{" + nl + b +nl+
+        "        }"+nl+
+        "      } else { return null; }"+nl+
+        "    }"+nl+
+       $"    public void Insert({className} item)"+"{" + nl +
+        "      int RowKey = _table.AddRow();" + nl +
+        ar+ nl +
         "      _table.Save();" + nl +
         "    }" + nl +
-       $"    public Update({className} item)" + "{" + nl +
-        "      int RowKey = item.RowKey;" + nl + ar +
+       $"    public void Update({className} item)" + "{" + nl +
+        "      int RowKey = item.Id;" + nl + 
+        ar + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
-       $"    public Delete({className} item)" + "{" + nl +
-        "      int RowKey = item.RowKey;" + nl +
-        "      _table[RowKey].Remove();" + nl +
+       $"    public void Delete({className} item)" + "{" + nl +
+        "      int RowKey = item.Id;" + nl +
+        "      _table.Rows.Remove(RowKey, out Row? _);" + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
-        "      " + nl +
+     //   "      " + nl +
 
        "  }" + nl + nl +
 
