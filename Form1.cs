@@ -156,6 +156,20 @@ namespace AppSmith {
       openStripMenuItem.Enabled = !_modelActive;
       closeStripMenuItem.Enabled = _modelActive;
     }
+
+    private void AddFileToMRUL(string fileName){       
+      if (!_settings.Contains("MRUL")) {
+        _settings["MRUL"] = new SettingProperty() { Key = "MRUL", Value = fileName };
+      } else {
+        var mrul = _settings["MRUL"].Value.Parse(Environment.NewLine);
+        string newMRUL = (mrul.Length > 0 ? mrul[0] : "") 
+          + (mrul.Length > 1 ? Environment.NewLine + mrul[1] : "")
+          + (mrul.Length > 2 ? Environment.NewLine + mrul[2] : "");
+        StringDict mruld = newMRUL.AsDict(Environment.NewLine);
+        mruld.Add(fileName);
+        _settings["MRUL"].Value = fileName + Environment.NewLine + mruld.AsString();
+      }      
+    }
     private void openStripMenuItem_Click(object sender, EventArgs e) {
       if (_fileName == "No File Open") {
         odMain.InitialDirectory = _defaultDir;
@@ -168,15 +182,7 @@ namespace AppSmith {
         try { 
           _settings = _settingsPack.Settings;
           _fileName = odMain.FileName;
-          if (!_settings.Contains("MRUL")) {
-            _settings["MRUL"] = new SettingProperty() { Key = "MRUL", Value = _fileName };
-          } else { 
-            var mrul = _settings["MRUL"].Value.Parse(Environment.NewLine); 
-            string newMRUL = (mrul.Length > 0 ? mrul[0]:"" ) + (mrul.Length > 1 ? Environment.NewLine+ mrul[1]:"");
-            StringDict mruld = newMRUL.AsDict(Environment.NewLine);
-            mruld.Add(_fileName);
-            _settings["MRUL"].Value = mruld.AsString();
-          }
+          AddFileToMRUL(_fileName);
           _settingsPack.Settings = _settings;
           _settingsPack.Save();
           this.Text = $"AppSmith {_fileName}";          
@@ -240,6 +246,7 @@ namespace AppSmith {
         _itemCaster = new ItemCaster(this, tvBuilder, _filePackage, _types);
         _itemCaster.LoadTreeviewItemsAsync(tvBuilder);
         _modelActive = true;
+        AddFileToMRUL(_fileName);
         tvBuilder.ContextMenuStrip = msBuilder;
         if (!props.Enabled) props.Enabled = true;
         btnOpenClose.Text = "Close";        
