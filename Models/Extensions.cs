@@ -687,7 +687,7 @@ namespace AppSmith.Models {
         }
       }
       string className = tnStProc.Text.ParseLast(".").AsUpperCaseFirstLetter();
-      var s = "    // C Dapper Edit via Add Update stored procdure" + Cs.nl +
+      var s = "" + Cs.nl +
         $"    public async Task<ActionResult> Exec{className}Async({d}) " + "{" + Cs.nl +
         $"      string connectionString = Settings.GetConnectionString(\"{sDBName}\");" + Cs.nl +
         $"      {className}Result result;" + Cs.nl +
