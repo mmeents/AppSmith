@@ -1,6 +1,8 @@
 # AppSmith
 C# MS-SQL Database table modeler.  
 
+![SQLView](https://mmeents.github.io/files/AppSmithSqlTable.png)
+
 App using Tree Control that Reads/Saves as a Dictionary via MessagePack to a file.    
 tree is a model of a Server.  So far I have code parsing/generation to SQL Tables. 
 can imagine doing more with functions views and procedures as well as c# entities API controllers and methods
@@ -17,3 +19,5 @@ Project target Framework net48 showcases the following components
 So sorry no build, if I built it for you, your os wouldn't trust it anyway so good reason to download Visual Studio Community edition and build and run it.
 
 Cheers
+
+
