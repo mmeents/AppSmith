@@ -174,88 +174,88 @@
             this.controllerToolStripMenuItem,
             this.meToolStripMenuItem});
       this.addTemplateToolStripMenuItem.Name = "addTemplateToolStripMenuItem";
-      this.addTemplateToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+      this.addTemplateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.addTemplateToolStripMenuItem.Text = "Add";
       this.addTemplateToolStripMenuItem.DropDownOpening += new System.EventHandler(this.addTemplateToolStripMenuItem_DropDownOpening);
       // 
       // AddServerToolStripMenuItem
       // 
       this.AddServerToolStripMenuItem.Name = "AddServerToolStripMenuItem";
-      this.AddServerToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.AddServerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.AddServerToolStripMenuItem.Text = "Server";
       this.AddServerToolStripMenuItem.Click += new System.EventHandler(this.AddServerToolStripMenuItem_Click);
       // 
       // AddDatabaseToolStripMenuItem
       // 
       this.AddDatabaseToolStripMenuItem.Name = "AddDatabaseToolStripMenuItem";
-      this.AddDatabaseToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.AddDatabaseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.AddDatabaseToolStripMenuItem.Text = "Database";
       this.AddDatabaseToolStripMenuItem.Click += new System.EventHandler(this.AddDatabaseToolStripMenuItem_Click);
       // 
       // AddTableToolStripMenuItem
       // 
       this.AddTableToolStripMenuItem.Name = "AddTableToolStripMenuItem";
-      this.AddTableToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.AddTableToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.AddTableToolStripMenuItem.Text = "Table";
       this.AddTableToolStripMenuItem.Click += new System.EventHandler(this.AddTableToolStripMenuItem_Click);
       // 
       // columnToolStripMenuItem
       // 
       this.columnToolStripMenuItem.Name = "columnToolStripMenuItem";
-      this.columnToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.columnToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.columnToolStripMenuItem.Text = "Column";
       this.columnToolStripMenuItem.Click += new System.EventHandler(this.columnToolStripMenuItem_Click);
       // 
       // apiToolStripMenuItem
       // 
       this.apiToolStripMenuItem.Name = "apiToolStripMenuItem";
-      this.apiToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.apiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.apiToolStripMenuItem.Text = "Api";
       this.apiToolStripMenuItem.Click += new System.EventHandler(this.apiToolStripMenuItem_Click);
       // 
       // controllerToolStripMenuItem
       // 
       this.controllerToolStripMenuItem.Name = "controllerToolStripMenuItem";
-      this.controllerToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.controllerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.controllerToolStripMenuItem.Text = "Controller";
       this.controllerToolStripMenuItem.Click += new System.EventHandler(this.controllerToolStripMenuItem_Click);
       // 
       // meToolStripMenuItem
       // 
       this.meToolStripMenuItem.Name = "meToolStripMenuItem";
-      this.meToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+      this.meToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.meToolStripMenuItem.Text = "Method";
       this.meToolStripMenuItem.Click += new System.EventHandler(this.meToolStripMenuItem_Click);
       // 
       // saveToolStripMenuItem
       // 
       this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-      this.saveToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+      this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.saveToolStripMenuItem.Text = "Save";
       // 
       // moveUpToolStripMenuItem
       // 
       this.moveUpToolStripMenuItem.Name = "moveUpToolStripMenuItem";
-      this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+      this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.moveUpToolStripMenuItem.Text = "Move Up";
       this.moveUpToolStripMenuItem.Click += new System.EventHandler(this.moveUpToolStripMenuItem_Click);
       // 
       // moveDownToolStripMenuItem
       // 
       this.moveDownToolStripMenuItem.Name = "moveDownToolStripMenuItem";
-      this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+      this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.moveDownToolStripMenuItem.Text = "Move Down";
       this.moveDownToolStripMenuItem.Click += new System.EventHandler(this.moveDownToolStripMenuItem_Click);
       // 
       // toolStripMenuItem1
       // 
       this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-      this.toolStripMenuItem1.Size = new System.Drawing.Size(135, 6);
+      this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
       // 
       // deleteToolStripMenuItem
       // 
       this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.deleteToolStripMenuItem.Text = "Delete";
       this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
       // 
@@ -292,7 +292,7 @@
       this.props.DocCommentDescription.AutoEllipsis = true;
       this.props.DocCommentDescription.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentDescription.Location = new System.Drawing.Point(4, 24);
-      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
+      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(19, 0, 19, 0);
       this.props.DocCommentDescription.Name = "";
       this.props.DocCommentDescription.Size = new System.Drawing.Size(0, 43);
       this.props.DocCommentDescription.TabIndex = 1;
@@ -303,7 +303,7 @@
       this.props.DocCommentTitle.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
       this.props.DocCommentTitle.Location = new System.Drawing.Point(4, 3);
-      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
+      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(19, 0, 19, 0);
       this.props.DocCommentTitle.Name = "";
       this.props.DocCommentTitle.Size = new System.Drawing.Size(0, 18);
       this.props.DocCommentTitle.TabIndex = 0;
@@ -313,6 +313,7 @@
       this.props.Location = new System.Drawing.Point(0, 0);
       this.props.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
       this.props.Name = "props";
+      this.props.PropertySort = System.Windows.Forms.PropertySort.NoSort;
       this.props.Size = new System.Drawing.Size(270, 231);
       this.props.TabIndex = 1;
       // 
@@ -328,7 +329,7 @@
       this.props.ToolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.props.ToolStrip.Location = new System.Drawing.Point(0, 1);
       this.props.ToolStrip.Name = "";
-      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(12, 0, 1, 0);
+      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(14, 0, 1, 0);
       this.props.ToolStrip.Size = new System.Drawing.Size(270, 25);
       this.props.ToolStrip.TabIndex = 1;
       this.props.ToolStrip.TabStop = true;
@@ -382,6 +383,7 @@
       this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edInput.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edInput.IsReplaceMode = false;
       this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
       this.edInput.LeftBracket = '(';
@@ -397,6 +399,7 @@
       // 
       // msInput
       // 
+      this.msInput.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.msInput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.inputClearToolStripMenuItem,
             this.inputCopyToolStripMenuItem,
@@ -468,6 +471,7 @@
       this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edSQL.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edSQL.IsReplaceMode = false;
       this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
       this.edSQL.LeftBracket = '(';
@@ -483,6 +487,7 @@
       // 
       // msOutput
       // 
+      this.msOutput.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.msOutput.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem3});
       this.msOutput.Name = "msInput";
@@ -530,6 +535,7 @@
       this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edCSharp.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edCSharp.IsReplaceMode = false;
       this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
       this.edCSharp.LeftBracket = '(';

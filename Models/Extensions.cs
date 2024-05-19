@@ -77,7 +77,11 @@ namespace AppSmith.Models {
     /// <param name="delims"></param>
     /// <returns></returns>
     public static string ParseFirst(this string content, string delims) {
-      return (content.Length > 0 ? content.Parse(delims)[0] : "");
+      string[] sr = content.Parse(delims);
+      if (sr.Length > 0) { 
+        return sr[0]; 
+      }
+      return "";
     }
 
     /// <summary>
