@@ -220,6 +220,7 @@ namespace AppSmith {
       lbFocusedItem.Text = "Recent:";
       edSQL.Text = "";
       edCSharp.Text = "";
+      _inEditItem = null;
     }
 
     private void btnOpenClose_Click(object sender, EventArgs e) {
@@ -234,7 +235,11 @@ namespace AppSmith {
     private void btnMruCombo_Click(object sender, EventArgs e) {
       try {
         _settings = _settingsPack.Settings;
-        _fileName = comboBox1.SelectedItem.ToString();                
+        if (comboBox1.SelectedItem != null) { 
+          _fileName = comboBox1.SelectedItem.ToString();                
+        } else { 
+          _fileName = comboBox1.Text;
+        }
         this.Text = $"AppSmith {_fileName}";
         _folder = _fileName.Substring(0, _fileName.Length - (_fileName.ParseLast("\\").Length + 1));
         if (!Directory.Exists(_folder)) {
@@ -489,7 +494,7 @@ namespace AppSmith {
       }
 
       props.Refresh();
-      props.MoveSplitterTo(Convert.ToInt32(props.Width * 0.2));
+      props.MoveSplitterTo(Convert.ToInt32(props.Width * 0.3333));
 
     }
 
