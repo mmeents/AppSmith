@@ -70,6 +70,9 @@
       this.openStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.closeStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.odMain = new System.Windows.Forms.OpenFileDialog();
+      this.AddMethodParamMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.AddClassMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.AddPropertyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -172,9 +175,12 @@
             this.columnToolStripMenuItem,
             this.apiToolStripMenuItem,
             this.controllerToolStripMenuItem,
-            this.meToolStripMenuItem});
+            this.AddMethodParamMenuItem,
+            this.meToolStripMenuItem,
+            this.AddClassMenuItem,
+            this.AddPropertyMenuItem});
       this.addTemplateToolStripMenuItem.Name = "addTemplateToolStripMenuItem";
-      this.addTemplateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.addTemplateToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
       this.addTemplateToolStripMenuItem.Text = "Add";
       this.addTemplateToolStripMenuItem.DropDownOpening += new System.EventHandler(this.addTemplateToolStripMenuItem_DropDownOpening);
       // 
@@ -230,32 +236,32 @@
       // saveToolStripMenuItem
       // 
       this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-      this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.saveToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
       this.saveToolStripMenuItem.Text = "Save";
       // 
       // moveUpToolStripMenuItem
       // 
       this.moveUpToolStripMenuItem.Name = "moveUpToolStripMenuItem";
-      this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
       this.moveUpToolStripMenuItem.Text = "Move Up";
       this.moveUpToolStripMenuItem.Click += new System.EventHandler(this.moveUpToolStripMenuItem_Click);
       // 
       // moveDownToolStripMenuItem
       // 
       this.moveDownToolStripMenuItem.Name = "moveDownToolStripMenuItem";
-      this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
       this.moveDownToolStripMenuItem.Text = "Move Down";
       this.moveDownToolStripMenuItem.Click += new System.EventHandler(this.moveDownToolStripMenuItem_Click);
       // 
       // toolStripMenuItem1
       // 
       this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-      this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
+      this.toolStripMenuItem1.Size = new System.Drawing.Size(135, 6);
       // 
       // deleteToolStripMenuItem
       // 
       this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.deleteToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
       this.deleteToolStripMenuItem.Text = "Delete";
       this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
       // 
@@ -292,7 +298,7 @@
       this.props.DocCommentDescription.AutoEllipsis = true;
       this.props.DocCommentDescription.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentDescription.Location = new System.Drawing.Point(4, 24);
-      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(19, 0, 19, 0);
+      this.props.DocCommentDescription.Margin = new System.Windows.Forms.Padding(22, 0, 22, 0);
       this.props.DocCommentDescription.Name = "";
       this.props.DocCommentDescription.Size = new System.Drawing.Size(0, 43);
       this.props.DocCommentDescription.TabIndex = 1;
@@ -303,7 +309,7 @@
       this.props.DocCommentTitle.Cursor = System.Windows.Forms.Cursors.Default;
       this.props.DocCommentTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
       this.props.DocCommentTitle.Location = new System.Drawing.Point(4, 3);
-      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(19, 0, 19, 0);
+      this.props.DocCommentTitle.Margin = new System.Windows.Forms.Padding(22, 0, 22, 0);
       this.props.DocCommentTitle.Name = "";
       this.props.DocCommentTitle.Size = new System.Drawing.Size(0, 18);
       this.props.DocCommentTitle.TabIndex = 0;
@@ -329,7 +335,7 @@
       this.props.ToolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
       this.props.ToolStrip.Location = new System.Drawing.Point(0, 1);
       this.props.ToolStrip.Name = "";
-      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(14, 0, 1, 0);
+      this.props.ToolStrip.Padding = new System.Windows.Forms.Padding(16, 0, 1, 0);
       this.props.ToolStrip.Size = new System.Drawing.Size(270, 25);
       this.props.ToolStrip.TabIndex = 1;
       this.props.ToolStrip.TabStop = true;
@@ -383,7 +389,6 @@
       this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edInput.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edInput.IsReplaceMode = false;
       this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
       this.edInput.LeftBracket = '(';
@@ -471,7 +476,6 @@
       this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edSQL.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edSQL.IsReplaceMode = false;
       this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
       this.edSQL.LeftBracket = '(';
@@ -535,7 +539,6 @@
       this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edCSharp.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edCSharp.IsReplaceMode = false;
       this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
       this.edCSharp.LeftBracket = '(';
@@ -585,7 +588,7 @@
       this.panel1.Location = new System.Drawing.Point(0, 24);
       this.panel1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(818, 49);
+      this.panel1.Size = new System.Drawing.Size(818, 39);
       this.panel1.TabIndex = 1;
       // 
       // comboBox1
@@ -649,7 +652,7 @@
             this.openStripMenuItem,
             this.closeStripMenuItem});
       this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-      this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+      this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 15);
       this.fileToolStripMenuItem.Text = "File";
       this.fileToolStripMenuItem.DropDownOpening += new System.EventHandler(this.fileToolStripMenuItem_DropDownOpening);
       // 
@@ -673,6 +676,27 @@
       this.odMain.DefaultExt = "asm";
       this.odMain.Filter = "AppSmithModel|*.asm";
       this.odMain.Title = "Open Archive";
+      // 
+      // AddMethodParamMenuItem
+      // 
+      this.AddMethodParamMenuItem.Name = "AddMethodParamMenuItem";
+      this.AddMethodParamMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.AddMethodParamMenuItem.Text = "Method Param";
+      this.AddMethodParamMenuItem.Click += new System.EventHandler(this.AddMethodParamMenuItem_Click);
+      // 
+      // AddClassMenuItem
+      // 
+      this.AddClassMenuItem.Name = "AddClassMenuItem";
+      this.AddClassMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.AddClassMenuItem.Text = "Class";
+      this.AddClassMenuItem.Click += new System.EventHandler(this.AddClassMenuItem_Click);
+      // 
+      // AddPropertyMenuItem
+      // 
+      this.AddPropertyMenuItem.Name = "AddPropertyMenuItem";
+      this.AddPropertyMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.AddPropertyMenuItem.Text = "Property";
+      this.AddPropertyMenuItem.Click += new System.EventHandler(this.AddPropertyMenuItem_Click);
       // 
       // Form1
       // 
@@ -768,6 +792,9 @@
     private System.Windows.Forms.ToolStripMenuItem meToolStripMenuItem;
     private System.Windows.Forms.Button btnOpenClose;
     private System.Windows.Forms.ComboBox comboBox1;
+    private System.Windows.Forms.ToolStripMenuItem AddMethodParamMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem AddClassMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem AddPropertyMenuItem;
   }
 }
 

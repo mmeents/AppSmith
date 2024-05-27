@@ -274,7 +274,9 @@ namespace AppSmith {
         if (meToolStripMenuItem.Enabled) meToolStripMenuItem.Enabled = false;
         if (columnToolStripMenuItem.Enabled) columnToolStripMenuItem.Enabled = false;        
         if (deleteToolStripMenuItem.Enabled) deleteToolStripMenuItem.Enabled = false;
-        
+        if (AddMethodParamMenuItem.Enabled) AddMethodParamMenuItem.Enabled = false;
+        if (AddClassMenuItem.Enabled) AddClassMenuItem.Enabled = false;
+
       } else {
 
         if (AddServerToolStripMenuItem.Enabled) AddServerToolStripMenuItem.Enabled = false;
@@ -287,13 +289,22 @@ namespace AppSmith {
         } 
         if (_inEditItem.TypeId == (int)TnType.Api) {
           if (!controllerToolStripMenuItem.Enabled) controllerToolStripMenuItem.Enabled = true;          
+          if (!AddClassMenuItem.Enabled) AddClassMenuItem.Enabled = true;
         } else {
           if (controllerToolStripMenuItem.Enabled) controllerToolStripMenuItem.Enabled = false;          
+          if (AddClassMenuItem.Enabled) AddClassMenuItem.Enabled = false;
         }
-        if(_inEditItem.TypeId == (int)TnType.Controller) {          
+        if((_inEditItem.TypeId == (int)TnType.Controller)||(_inEditItem.TypeId == (int)TnType.Class)) {          
           if (!meToolStripMenuItem.Enabled) meToolStripMenuItem.Enabled = true;
+          if (!AddPropertyMenuItem.Enabled) AddPropertyMenuItem.Enabled = true;
         } else {          
           if (meToolStripMenuItem.Enabled) meToolStripMenuItem.Enabled = false;
+          if (AddPropertyMenuItem.Enabled) AddPropertyMenuItem.Enabled = false;
+        }
+        if(_inEditItem.TypeId == (int)TnType.Method) { 
+          if (!AddMethodParamMenuItem.Enabled) AddMethodParamMenuItem.Enabled = true;
+        } else { 
+          if (AddMethodParamMenuItem.Enabled) AddMethodParamMenuItem.Enabled = false;
         }
 
         if (_inEditItem.TypeId == (int)TnType.Tables) {
@@ -379,7 +390,14 @@ namespace AppSmith {
 
     private void AddTableToolStripMenuItem_Click(object sender, EventArgs e) {
       var tblItem = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Table], "Table");
-      _ = _itemCaster.SaveNewChildItemsFromText(tblItem, _types[(int)TnType.TableColumn], "Id");
+      var ColIndx = _itemCaster.SaveNewChildItemsFromText(tblItem, _types[(int)TnType.TableColumn], "Id");
+      ColIndx.ValueTypeId = 30;
+      ColIndx.Code = "IDENTITY(1,1)";
+    }
+
+    private void AddMethodParamMenuItem_Click(object sender, EventArgs e) {
+      var mp = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.MethodParam], "Param");
+      mp.ValueTypeId = 30;
     }
     private void columnToolStripMenuItem_Click(object sender, EventArgs e) {
       if (_inEditItem == null) return;
@@ -407,11 +425,21 @@ namespace AppSmith {
     }
 
     private void controllerToolStripMenuItem_Click(object sender, EventArgs e) {
-      _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Controller], "Controller");
+      var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Controller], "Controller");
+      cont.ValueTypeSize = "1.0"; // version default 
     }
-
+    private void AddClassMenuItem_Click(object sender, EventArgs e) {
+      var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Class], "Class");
+      cont.Code = "";
+    }
     private void meToolStripMenuItem_Click(object sender, EventArgs e) {
-      _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Method], "Method");
+      var meth = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Method], "Method");
+      meth.ValueTypeId = 66;
+    }
+    
+
+    private void AddPropertyMenuItem_Click(object sender, EventArgs e) {
+      var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Property], "Prop");
     }
 
     #endregion
@@ -451,15 +479,18 @@ namespace AppSmith {
            item.TypeId == (int)TnType.Database ||
            item.TypeId == (int)TnType.Api ||
            item.TypeId == (int)TnType.Controller ||
+           item.TypeId == (int)TnType.Class ||
            item.TypeId == (int)TnType.Table ||
            item.TypeId == (int)TnType.View ||
            item.TypeId == (int)TnType.Procedure ||
            item.TypeId == (int)TnType.Function ||
            item.TypeId == (int)TnType.Method ||
+           item.TypeId == (int)TnType.Property ||
            item.TypeId == (int)TnType.TableColumn ||
            item.TypeId == (int)TnType.ViewColumn ||
            item.TypeId == (int)TnType.ProcedureParam ||
-           item.TypeId == (int)TnType.FunctionParam
+           item.TypeId == (int)TnType.FunctionParam ||
+           item.TypeId == (int)TnType.MethodParam
         ) {
            ItemType it = _types[item.TypeId];
            ItemType itCat = _types[it.CatagoryTypeId];
@@ -467,29 +498,107 @@ namespace AppSmith {
            props.Item.Add(cp);
         }
 
-        if (
-            item.TypeId == (int)TnType.TableColumn ||
-            item.TypeId == (int)TnType.ViewColumn ||
-            item.TypeId == (int)TnType.ProcedureParam ||
-            item.TypeId == (int)TnType.FunctionParam
-        ) {
-          var al = _types.GetChildrenItems(29).ToArray<ItemType>();
+        if (item.TypeId == (int)TnType.Controller ||
+            item.TypeId == (int)TnType.Property || 
+            item.TypeId == (int)TnType.Class || 
+            item.TypeId == (int)TnType.Method
+          ) {
+          var sa = item.Code.Parse(",");
+          if ((sa == null)||(sa.Length!=7)) { 
+            sa = "false,false,false,false,false,NULL,0".Parse(",");
+          }
+          bool isAsync = bool.Parse(sa[0]);
+          bool isVirtual = bool.Parse(sa[1]);
+          bool isStatic = bool.Parse(sa[2]);
+          bool isAbstract = bool.Parse(sa[3]);
+          bool isSealed = bool.Parse(sa[4]);
+          string baseType = sa[5]=="NULL"? "" : sa[5];
+          int access = sa[6].AsInt();
+
+          var al = _types.GetChildrenItems(73).ToArray<ItemType>();
           ItemType it = _types[item.TypeId];
           ItemType itCat = _types[it.CatagoryTypeId];
-          ItemType itEditor = _types[it.EditorTypeId];
+          var cp = new PropertyGridEx.CustomProperty() {
+            Name = "Access", Category = "Accessibility", Description = it.Desc, Value = _types[access].Name,
+            DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
+          };
+          props.Item.Add(cp);
+
+          var cp0 = new PropertyGridEx.CustomProperty("Async", isAsync, false, "Async", "Include async", true);
+          props.Item.Add(cp0);
+          var cp1 = new PropertyGridEx.CustomProperty("Virtual", isVirtual, false, "Virtual", "Include virtual", true);
+          props.Item.Add(cp1);
+          var cp2 = new PropertyGridEx.CustomProperty("Static", isStatic, false, "Static", "Include static", true);
+          props.Item.Add(cp2);
+          var cp3 = new PropertyGridEx.CustomProperty("Abstract", isAbstract, false, "Abstract", "Include abstract", true);
+          props.Item.Add(cp3);
+          var cp4 = new PropertyGridEx.CustomProperty("Sealed", isSealed, false, "Sealed", "Include sealed", true);
+          props.Item.Add(cp4);
+          var cp5 = new PropertyGridEx.CustomProperty("BaseType", baseType, false, "Return Type", "Type class is derived from or returns", true);
+          props.Item.Add(cp5);
+
+         
+        }
+
+        if (item.TypeId == (int)TnType.MethodParam) {
+
+          var al = _types.GetChildrenItems(79).ToArray<ItemType>();
+          ItemType it = _types[item.TypeId];
+          ItemType itCat = _types[it.CatagoryTypeId];
           var customProperty = new PropertyGridEx.CustomProperty() {
             Name = "Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
             DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
           };
           props.Item.Add(customProperty);
 
-          var cp = new PropertyGridEx.CustomProperty("Size", item.ValueTypeSize, false, itCat.Text, "column size example (max)", it.Visible);
-          props.Item.Add(cp);
-
-          var cp1 = new PropertyGridEx.CustomProperty("Code", item.Code, false, itCat.Text, "", it.Visible);
-          props.Item.Add(cp1);
+          int[] ClassStructTypes = { 80, 81 };
+          if( Array.IndexOf(ClassStructTypes, item.ValueTypeId) >= 0) {
+            var cp1 = new PropertyGridEx.CustomProperty("Type Name", item.Code, false, itCat.Text, "", it.Visible);
+            props.Item.Add(cp1);
+          }
 
         }
+
+        if (
+            item.TypeId == (int)TnType.TableColumn ||
+            item.TypeId == (int)TnType.ViewColumn ||
+            item.TypeId == (int)TnType.ProcedureParam ||
+            item.TypeId == (int)TnType.FunctionParam 
+            
+        ) {
+          var al = _types.GetChildrenItems(29).ToArray<ItemType>();
+          ItemType it = _types[item.TypeId];
+          ItemType itCat = _types[it.CatagoryTypeId];       
+          var customProperty = new PropertyGridEx.CustomProperty() {
+            Name = "Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
+            DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
+          };
+          props.Item.Add(customProperty);
+          
+          var cp = new PropertyGridEx.CustomProperty("Size", item.ValueTypeSize, false, itCat.Text, "column size example (max)", it.Visible);
+          props.Item.Add(cp);
+          
+          var cp1 = new PropertyGridEx.CustomProperty("Code", item.Code, false, itCat.Text, "", it.Visible);
+          props.Item.Add(cp1);
+          
+        }
+
+        if (item.TypeId == (int)TnType.Controller) {
+          var cp = new PropertyGridEx.CustomProperty("Version", item.ValueTypeSize, false, "API Version", "Controller Version", true);
+          props.Item.Add(cp);
+        }
+        Item parent = (Item)item.Parent;
+        if (item.TypeId == (int)TnType.Method && (parent.TypeId == (int)TnType.Controller)) {
+          var al = _types.GetChildrenItems(65).ToArray<ItemType>();
+          ItemType it = _types[item.TypeId];
+          ItemType itCat = _types[it.CatagoryTypeId];
+          var cp = new PropertyGridEx.CustomProperty() {
+            Name = "Method Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
+            DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
+          };
+          props.Item.Add(cp);
+        }
+
 
       }
 
@@ -500,30 +609,92 @@ namespace AppSmith {
 
     private void props_PropertyValueChanged(object s, PropertyValueChangedEventArgs e) {
       if (_inEditItem != null) {
+
+        var sa = "false,false,false,false,false,NULL,0".Parse(",");
+        if (_inEditItem.TypeId == (int)TnType.Class ||
+            _inEditItem.TypeId == (int)TnType.Controller ||
+            _inEditItem.TypeId == (int)TnType.Property || 
+            _inEditItem.TypeId == (int)TnType.Method) { 
+          sa = _inEditItem.Code.Parse(",");
+          if ((sa == null) || (sa.Length != 7)) {
+            sa = "false,false,false,false,false,NULL,0".Parse(",");
+          }
+        }        
+        bool isAsync = bool.Parse(sa[0]);
+        bool isVirtual = bool.Parse(sa[1]);
+        bool isStatic = bool.Parse(sa[2]);
+        bool isAbstract = bool.Parse(sa[3]);
+        bool isSealed = bool.Parse(sa[4]);
+        string baseType = sa[5] == "NULL" ? "" : sa[5];
+        int access = sa[6].AsInt();
+
         foreach (CustomProperty y in props.Item) {
           if ((y.Name == "Name")&&(!String.IsNullOrEmpty( y.Name)) ){
             if (Convert.ToString(y.Value) != _inEditItem.Name) {
               _inEditItem.Text = Convert.ToString(y.Value);
             }
-          } else if (y.Name == "Type") {
+          } else if ((y.Name == "Type")||(y.Name == "Method Type")) {
             var selVal = Convert.ToInt32(y.SelectedValue);
             if ((selVal != _inEditItem.ValueTypeId) && (y.SelectedValue != null)){
               _inEditItem.ValueTypeId = selVal;
             }
-          } else if (y.Name == "Size")  { 
+          } else if ((y.Name == "Size")||(y.Name == "Version"))  { 
             if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.ValueTypeSize)) {
               _inEditItem.ValueTypeSize = y.Value.AsString();
             }
-          } else if (y.Name == "Code") {
+          } else if ((y.Name == "Code")||(y.Name  == "Type Name")){
             if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.Code)) {
               _inEditItem.Code = y.Value.AsString();
             }
+          } else if (y.Name == "Async") {
+            if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isAsync)) {
+              isAsync = Convert.ToBoolean(y.Value);
+            }
+          } else if (y.Name == "Virtual") {
+            if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isVirtual)) {
+              isVirtual = Convert.ToBoolean(y.Value);              
+            }
+          } else if (y.Name == "Static") {
+            if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isStatic)) {
+              isStatic = Convert.ToBoolean(y.Value);
+            }
+          } else if (y.Name == "Abstract") {
+            if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isAbstract)) {
+              isAbstract = Convert.ToBoolean(y.Value);
+            }
+          } else if (y.Name == "Sealed") {
+            if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isSealed)) {
+              isSealed = Convert.ToBoolean(y.Value);
+            }
+          } else if (y.Name == "BaseType") {
+            if ((y.Value != null) && (y.Value.AsString() != baseType)) {
+              baseType = y.Value.AsString();
+            }
+          } else if (y.Name == "Access") {
+            if ((y.Value != null) && (Convert.ToInt32(y.SelectedValue) != access)) {
+              var selVal = Convert.ToInt32(y.SelectedValue);
+              if ((selVal != access) && (y.SelectedValue != null)) {
+                access = selVal;
+              }
+            }
+          }
+        }
+        if (_inEditItem.TypeId == (int)TnType.Class ||
+            _inEditItem.TypeId == (int)TnType.Controller ||
+            _inEditItem.TypeId == (int)TnType.Property || 
+            _inEditItem.TypeId == (int)TnType.Method) {
+          if (string.IsNullOrEmpty(baseType)) { baseType = "NULL";}
+          baseType = baseType.Replace(" ", "").Replace(",","");
+          string newcode = $"{isAsync},{isVirtual},{isStatic},{isAbstract},{isSealed},{baseType},{access}";
+          if (_inEditItem.Code != newcode) { 
+            _inEditItem.Code = newcode;
           }
         }
         if (_inEditItem.Dirty) {
           try {
             SetInProgress(9500);
             _itemCaster.SaveItem(_inEditItem);
+            ResetPropEditors(_inEditItem);
             PopulateEditors(_inEditItem);
           } finally {
             SetInProgress(0);
@@ -539,6 +710,8 @@ namespace AppSmith {
           lit = (Item)_inEditItem.Parent;        
         }
       }
+      Item parent = (Item)it?.Parent ?? null;
+      Item gp = (Item)parent?.Parent ?? null;
 
       if (it == null) {
         lbFocusedItem.Text = string.Empty;
@@ -549,9 +722,46 @@ namespace AppSmith {
         case (int)TnType.Tables: PrepareListTables(lit); break;
         case (int)TnType.Table: PrepareTableType(lit); break;
         case (int)TnType.Procedure: PrepareProcedureType(lit); break;
-      //  case (int)TnType.Function: PrepareFunctionType(it); break;
+        case (int)TnType.Api: PrepareApi(lit) ; break;
+        case (int)TnType.Controller: PrepareController(lit); break;
+        case (int)TnType.Method: 
+          if(parent.TypeId == (int)TnType.Controller) {
+            PrepareController(parent);
+          } else {
+            PrepareClass(parent);
+          } break;
+        case (int)TnType.MethodParam:
+          if (gp.TypeId == (int)TnType.Controller) {
+            PrepareController(gp);
+          } else {
+            PrepareClass(gp);
+          }
+          break;
+        case (int)TnType.Class: PrepareClass(lit); break;
+        case (int)TnType.Property:
+          if (parent.TypeId == (int)TnType.Controller) {
+            PrepareController(parent);
+          } else {
+            PrepareClass(parent);
+          } break;
+        //  case (int)TnType.Function: PrepareFunctionType(it); break;
         default: PrepareNullType(lit); break;
       }
+    }
+    public void PrepareApi(Item it) { 
+      if (it == null) return;
+      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edCSharp.Text = it.GenerateApi(_types);
+    }
+    public void PrepareController(Item it) {
+      if (it == null) return;
+      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edCSharp.Text = it.GenerateController(_types, true);
+    }
+    public void PrepareClass(Item it) {
+      if (it == null) return;
+      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edCSharp.Text = it.GenerateClass(_types, true);
     }
 
     public void PrepareNullType(Item it) {

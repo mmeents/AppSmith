@@ -35,7 +35,10 @@ namespace AppSmith.Models {
     Api = 60,
     Controller = 61,
     Method = 62,
-    ProcBody = 63
+    ProcBody = 63,
+    MethodParam = 64,
+    Class = 71,
+    Property = 72
   }
 
   public enum Tii {
@@ -140,6 +143,18 @@ namespace AppSmith.Models {
             this.ImageIndex= (int)Tii.Internal;
             this.SelectedImageIndex= (int)Tii.Internal;
             break;
+          case (int)TnType.MethodParam:
+            this.ImageIndex = (int)Tii.Column;
+            this.SelectedImageIndex = (int)Tii.Column;
+            break;
+          case (int)TnType.Class:
+            this.ImageIndex = (int)Tii.Folder;
+            this.SelectedImageIndex = (int)Tii.Folder;
+            break;
+          case (int)TnType.Property:
+            this.ImageIndex = (int)Tii.Column;
+            this.SelectedImageIndex = (int)Tii.Column;
+            break;
         }
       }
     }
@@ -167,6 +182,7 @@ namespace AppSmith.Models {
       this[1] = new ItemType() { TypeId = 1, OwnerTypeId = 1, CatagoryTypeId = 0, EditorTypeId = 10, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Internal", Desc = "Root " };
       this[2] = new ItemType() { TypeId = 2, OwnerTypeId = 1, CatagoryTypeId = 2, EditorTypeId = 10, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "CatagoryTypes", Desc = "Catagory Type" };
       this[7] = new ItemType() { TypeId = 7, OwnerTypeId = 1, CatagoryTypeId = 3, EditorTypeId = 10, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "EditorTypes", Desc = "Editor Type" };
+
       this[17] = new ItemType() { TypeId = 17, OwnerTypeId = 1, CatagoryTypeId = 4, EditorTypeId = 10, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "thisTypes", Desc = "Model Type" };
       this[28] = new ItemType() { TypeId = 28, OwnerTypeId = 1, CatagoryTypeId = 3, EditorTypeId = 10, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Lookups", Desc = "Lookup Editors" };
 
@@ -200,13 +216,24 @@ namespace AppSmith.Models {
       this[46] = new ItemType() { TypeId = 46, OwnerTypeId = 27, CatagoryTypeId = 4, EditorTypeId = 29, TypeRank = 1, TypeEnum = 14, Visible = true, Readonly = false, Name = "FunctionParam", Desc = "Function Param Type" };
 
       this[60] = new ItemType() { TypeId = 60, OwnerTypeId = 18, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Api", Desc = "Api Type" };
-      this[61] = new ItemType() { TypeId = 61, OwnerTypeId = 60, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Controller", Desc = "Controller Type" };
+      this[71] = new ItemType() { TypeId = 71, OwnerTypeId = 60, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 1, Visible = true, Readonly = false, Name = "Class", Desc = "Class Type" };
+      this[72] = new ItemType() { TypeId = 72, OwnerTypeId = 71, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 1, Visible = true, Readonly = false, Name = "Property", Desc = "Property Type" };
+
+      this[61] = new ItemType() { TypeId = 61, OwnerTypeId = 60, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 2, TypeEnum = 2, Visible = true, Readonly = false, Name = "Controller", Desc = "Controller Type" };
       this[62] = new ItemType() { TypeId = 62, OwnerTypeId = 61, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "Method", Desc = "Method Type" };
+      this[64] = new ItemType() { TypeId = 64, OwnerTypeId = 62, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "MethodParam", Desc = "Method Parameter" };
+            
 
       this[63] = new ItemType() { TypeId = 63, OwnerTypeId = 26, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 1, TypeEnum = 2, Visible = true, Readonly = false, Name = "ProcBody", Desc = "Procedure Body" };
 
-      this[29] = new ItemType() { TypeId = 29, OwnerTypeId = 28, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Table Columns", Desc = "Table Column Type Lookup" };
+      this[65] = new ItemType() { TypeId = 65, OwnerTypeId = 1, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Method Types", Desc = "Method Types Lookups" };
+      this[66] = new ItemType() { TypeId = 66, OwnerTypeId = 65, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Get", Desc = "[HttpGet]" };
+      this[67] = new ItemType() { TypeId = 67, OwnerTypeId = 65, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Post", Desc = "[HttpPost]" };
+      this[68] = new ItemType() { TypeId = 68, OwnerTypeId = 65, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Put", Desc = "[HttpPut]" };
+      this[69] = new ItemType() { TypeId = 69, OwnerTypeId = 65, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Delete", Desc = "[HttpDelete]" };
+      this[70] = new ItemType() { TypeId = 70, OwnerTypeId = 65, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Patch", Desc = "[HttpPatch]" };
 
+      this[29] = new ItemType() { TypeId = 29, OwnerTypeId = 28, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Table Columns", Desc = "Table Column Type Lookup" };
       this[30] = new ItemType() { TypeId = 30, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "int", Desc = "int" };
       this[31] = new ItemType() { TypeId = 31, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 2, TypeEnum = 5, Visible = false, Readonly = true, Name = "bigint", Desc = "bigint" };
       this[32] = new ItemType() { TypeId = 32, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 13, TypeRank = 3, TypeEnum = 3, Visible = false, Readonly = true, Name = "bit", Desc = "bit" };
@@ -217,7 +244,6 @@ namespace AppSmith.Models {
       this[39] = new ItemType() { TypeId = 39, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 42, TypeRank = 10, TypeEnum = 10, Visible = false, Readonly = true, Name = "char", Desc = "char(50)" };
       this[40] = new ItemType() { TypeId = 40, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 42, TypeRank = 11, TypeEnum = 11, Visible = false, Readonly = true, Name = "binary", Desc = "binary(14)" };
       this[41] = new ItemType() { TypeId = 41, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 42, TypeRank = 12, TypeEnum = 12, Visible = false, Readonly = true, Name = "float", Desc = "float(53)" };
-
       this[47] = new ItemType() { TypeId = 47, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 13, TypeEnum = 13, Visible = false, Readonly = true, Name = "image", Desc = "image" };
       this[48] = new ItemType() { TypeId = 48, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 14, TypeEnum = 14, Visible = false, Readonly = true, Name = "money", Desc = "decimal(53)" };
       this[49] = new ItemType() { TypeId = 49, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 15, TypeEnum = 15, Visible = false, Readonly = true, Name = "real", Desc = "real(53)" };
@@ -232,6 +258,27 @@ namespace AppSmith.Models {
       this[58] = new ItemType() { TypeId = 58, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 24, TypeEnum = 24, Visible = false, Readonly = true, Name = "uniqueidentifier", Desc = "uniqueidentifier" };
       this[59] = new ItemType() { TypeId = 59, OwnerTypeId = 29, CatagoryTypeId = 4, EditorTypeId = 9, TypeRank = 25, TypeEnum = 25, Visible = false, Readonly = true, Name = "varbinary", Desc = "varbinary(50)" };
 
+      this[73] = new ItemType() { TypeId = 73, OwnerTypeId = 1, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Accessibility", Desc = "Accessibility Lookups" };
+      this[74] = new ItemType() { TypeId = 74, OwnerTypeId = 73, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Public", Desc = "public" };
+      this[75] = new ItemType() { TypeId = 75, OwnerTypeId = 73, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 2, TypeEnum = 1, Visible = false, Readonly = true, Name = "Internal", Desc = "internal" };
+      this[76] = new ItemType() { TypeId = 76, OwnerTypeId = 73, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 3, TypeEnum = 1, Visible = false, Readonly = true, Name = "Private", Desc = "private" };
+      this[77] = new ItemType() { TypeId = 77, OwnerTypeId = 73, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 4, TypeEnum = 1, Visible = false, Readonly = true, Name = "Protected", Desc = "protected" };
+      this[78] = new ItemType() { TypeId = 78, OwnerTypeId = 73, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 5, TypeEnum = 1, Visible = false, Readonly = true, Name = "Protected Internal", Desc = "protected internal" };
+
+      this[79] = new ItemType() { TypeId = 79, OwnerTypeId = 1, CatagoryTypeId = 3, EditorTypeId = 11, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "C# Types", Desc = "C$ Types Lookups" };      
+      this[80] = new ItemType() { TypeId = 80, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 1, TypeEnum = 1, Visible = false, Readonly = true, Name = "Class", Desc = "Class" };
+      this[81] = new ItemType() { TypeId = 81, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 2, TypeEnum = 1, Visible = false, Readonly = true, Name = "Struct", Desc = "Struct" };
+      this[82] = new ItemType() { TypeId = 82, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 3, TypeEnum = 1, Visible = false, Readonly = true, Name = "string", Desc = "string" };
+      this[83] = new ItemType() { TypeId = 83, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 4, TypeEnum = 1, Visible = false, Readonly = true, Name = "bool", Desc = "bool" };
+      this[84] = new ItemType() { TypeId = 84, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 5, TypeEnum = 1, Visible = false, Readonly = true, Name = "char", Desc = "char" };
+      this[85] = new ItemType() { TypeId = 85, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 6, TypeEnum = 1, Visible = false, Readonly = true, Name = "int", Desc = "int" };
+      this[86] = new ItemType() { TypeId = 86, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 7, TypeEnum = 1, Visible = false, Readonly = true, Name = "long", Desc = "long" };
+      this[87] = new ItemType() { TypeId = 87, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 8, TypeEnum = 1, Visible = false, Readonly = true, Name = "short", Desc = "short" };
+      this[88] = new ItemType() { TypeId = 88, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 9, TypeEnum = 1, Visible = false, Readonly = true, Name = "byte", Desc = "byte" };
+      this[89] = new ItemType() { TypeId = 89, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 10, TypeEnum = 1, Visible = false, Readonly = true, Name = "double", Desc = "double" };
+      this[90] = new ItemType() { TypeId = 90, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 11, TypeEnum = 1, Visible = false, Readonly = true, Name = "float", Desc = "float" };
+      this[91] = new ItemType() { TypeId = 91, OwnerTypeId = 79, CatagoryTypeId = 4, EditorTypeId = 8, TypeRank = 12, TypeEnum = 1, Visible = false, Readonly = true, Name = "decimal", Desc = "decimal" };      
+
 
       this[19] = LoadSubtypes(this[19]);
 
@@ -239,6 +286,7 @@ namespace AppSmith.Models {
       this[25] = LoadSubtypes(this[25]);
       this[26] = LoadSubtypes(this[26]);
       this[27] = LoadSubtypes(this[27]);
+      this[62] = LoadSubtypes(this[62]);
     }
 
     public IEnumerable<ItemType> GetChildrenItemsNoDef(int id) {
