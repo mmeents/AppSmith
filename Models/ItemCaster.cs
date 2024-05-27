@@ -96,6 +96,22 @@ namespace AppSmith.Models {
             this.ImageIndex = (int)Tii.Column;
             this.SelectedImageIndex = (int)Tii.Column;
             break;
+          case (int)TnType.ProcBody:
+            this.ImageIndex = (int)Tii.Internal;
+            this.SelectedImageIndex = (int)Tii.Internal;
+            break;
+          case (int)TnType.MethodParam:
+            this.ImageIndex = (int)Tii.Column;
+            this.SelectedImageIndex = (int)Tii.Column;
+            break;
+          case (int)TnType.Class:
+            this.ImageIndex = (int)Tii.Folder;
+            this.SelectedImageIndex = (int)Tii.Folder;
+            break;
+          case (int)TnType.Property:
+            this.ImageIndex = (int)Tii.Column;
+            this.SelectedImageIndex = (int)Tii.Column;
+            break;
         }
       }
     }    

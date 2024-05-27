@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace AppSmith.Models {
   public static class Ext {
@@ -127,7 +131,9 @@ namespace AppSmith.Models {
     public static int AsInt(this string obj) {
       return int.TryParse(obj, out int r) ? r : 0;
     }
-
+    public static int AsInt(this object obj) {
+      return int.TryParse(obj.AsString(), out int r) ? r : 0;
+    }
     /// <summary>
     /// byte[] to utf8 string; use AsString() to reverse
     /// </summary>
@@ -171,6 +177,7 @@ namespace AppSmith.Models {
     /// <param name="content"></param>
     /// <returns></returns>    
     public static string AsLowerCaseFirstLetter(this string content) {
+      if (string.IsNullOrEmpty(content)) return "";
       return content.Substring(0, 1).ToLower() + content.Substring(1);
     }
     /// <summary>
@@ -179,6 +186,7 @@ namespace AppSmith.Models {
     /// <param name="content"></param>
     /// <returns></returns>
     public static string AsUpperCaseFirstLetter(this string content) {
+      if (string.IsNullOrEmpty(content)) return "";
       return content.Substring(0, 1).ToUpper() + content.Substring(1);
     }
 
@@ -350,6 +358,198 @@ namespace AppSmith.Models {
   }
 
   public static class Ic {
+    public static string GenerateApi(this Item tnApi, Types types) { 
+      StringBuilder res = new StringBuilder();
+      res.AppendLine($"namespace {tnApi.Text} {{ ");
+      foreach(Item tnController in tnApi.Nodes) {
+        if (tnController.TypeId == (int)TnType.Controller) {
+          res.AppendLine(tnController.GenerateController(types, false));
+        } else {
+          res.AppendLine(tnController.GenerateClass(types, false));
+        }        
+      }
+      res.AppendLine($"}} ");
+      return res.ToString();
+    }
+    public static string GenerateMethodParam(this Item tnMethodParam, Types types) {
+       int tId = tnMethodParam.ValueTypeId;
+       string paramType = "";
+       if (( tId == 80) || (tId == 81)) { 
+         paramType = tnMethodParam.Code;
+       } else { 
+         paramType = types[tId].Name;
+       }       
+       return paramType+" "+ tnMethodParam.Text;
+
+    }
+    public static string GenerateAccessibility(this Item tnClass, Types types) {
+      var sa = tnClass.Code.Parse(",");
+      if ((sa == null) || (sa.Length != 7)) {
+        sa = "false,false,false,false,false,NULL,74".Parse(",");
+      }
+      bool isAsync = bool.Parse(sa[0]);
+      bool isVirtual = bool.Parse(sa[1]);
+      bool isStatic = bool.Parse(sa[2]);
+      bool isAbstract = bool.Parse(sa[3]);
+      bool isSealed = bool.Parse(sa[4]);
+      int Access =  int.TryParse(sa[6], out int iAccess) ? iAccess: 0;
+      string baseAccess = (Access > 0)  ? types[Access].Desc : "";
+      string AccessibilityClause = $"{baseAccess} {(isAsync ? "async " : "")}{(isVirtual ? "virtual " : "")}{(isStatic ? "static " : "")}{(isAbstract ? "abstract " : "")}{(isSealed ? "sealed " : "")}";
+      return AccessibilityClause;
+    }
+    public static string GenerateBaseType(this Item tnClass) {
+      var sa = tnClass.Code.Parse(",");
+      if ((sa == null) || (sa.Length != 7)) {
+        sa = "false,false,false,false,false,NULL,74".Parse(",");
+      }
+      string baseType = sa[5] == "NULL" ? "" : sa[5];
+      return sa[5] == "NULL" ? "" : sa[5]+" ";
+    }
+
+    public static string GenerateControllerIntf(this Item tnController, Types types, bool incluedNameSpace) {
+      StringBuilder res = new StringBuilder();
+      string ver = tnController.ValueTypeSize;
+      string AccessibilityClause = tnController.GenerateAccessibility(types);
+      string baseType = tnController.GenerateBaseType();
+      baseType = string.IsNullOrWhiteSpace(baseType)? "" : " : "+baseType;
+
+      if (incluedNameSpace) {
+        res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
+      }      
+      res.AppendLine($"{Cs.nl}    {AccessibilityClause}interface I{tnController.Text}{baseType}{Cs.nl}    {{"); // begin controller class      
+      foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
+        if (tnMethod.TypeId == (int)TnType.Property) {
+          string ac = tnMethod.GenerateAccessibility(types);
+          string bt = tnMethod.GenerateBaseType();
+          if (ac.Length>0 && ac.Parse(" ")[0] == "public") { 
+            res.AppendLine("        " + ac + bt + " " + tnMethod.Text + ";");
+          }
+        }
+      }
+      foreach (Item tnMethod in tnController.Nodes) {
+        if (tnMethod.TypeId == (int)TnType.Method) {
+          string ac = tnMethod.GenerateAccessibility(types).Trim();
+          if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
+            res.Append(tnMethod.GenerateMethodIntf(types));
+          }
+        }
+      }
+      res.AppendLine($"    }}");  // end controller class
+      if (incluedNameSpace) {
+        res.AppendLine($"}}");
+      }
+      return res.ToString();
+    }
+    public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
+      StringBuilder res = new StringBuilder();
+      string ver = tnController.ValueTypeSize;
+      string AccessibilityClause = tnController.GenerateAccessibility(types);
+      string baseType = tnController.GenerateBaseType();
+      baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
+      if (incluedNameSpace) {
+        res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
+      }
+      res.AppendLine(tnController.GenerateControllerIntf(types, false));
+      res.AppendLine( "    [Route(\"api/[controller]\")]");
+      res.AppendLine( "    [ApiController]");
+      res.AppendLine($"    [ApiVersion(\"{ver}\")]");
+      res.AppendLine($"    [Authorize]");
+      res.AppendLine($"    {AccessibilityClause}class {tnController.Text}{baseType}{Cs.nl}    {{"); // begin controller class      
+      foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
+        if (tnMethod.TypeId == (int)TnType.Property) {
+          string ac = tnMethod.GenerateAccessibility(types);
+          string bt = tnMethod.GenerateBaseType();
+          res.AppendLine("        "+ac + bt + " " + tnMethod.Text+";");
+        }
+      }
+      foreach (Item tnMethod in tnController.Nodes) {
+        if (tnMethod.TypeId == (int)TnType.Method) {
+          res.Append(tnMethod.GenerateMethod(types)); 
+        }
+      }
+      res.AppendLine($"    }}");  // end controller class
+      if (incluedNameSpace) {
+        res.AppendLine($"}}");
+      }
+      return res.ToString();
+    }
+    
+
+    public static string GenerateClass(this Item tnClass, Types types, bool incluedNameSpace) {
+      StringBuilder res = new StringBuilder();
+      string ver = tnClass.ValueTypeSize;      
+      string AccessibilityClause = tnClass.GenerateAccessibility(types);
+      string baseType = tnClass.GenerateBaseType();
+      baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
+      if (incluedNameSpace) {
+        res.AppendLine($"namespace {tnClass.Parent.Text} {{ ");
+      }
+      res.AppendLine(tnClass.GenerateControllerIntf(types, false));
+      res.AppendLine($"    {AccessibilityClause}class {tnClass.Text}{baseType}{Cs.nl}    {{"); // begin class
+      foreach (Item tnMethod in tnClass.Nodes) {                                        // Methods 
+        if (tnMethod.TypeId == (int)TnType.Property) {
+          string ac = tnMethod.GenerateAccessibility(types);
+          string bt = tnMethod.GenerateBaseType();
+          res.AppendLine("        " + ac + bt + " " + tnMethod.Text+";");
+        }        
+      }
+      foreach (Item tnMethod in tnClass.Nodes) {
+        if (tnMethod.TypeId == (int)TnType.Method) {
+          res.AppendLine(tnMethod.GenerateMethod(types));
+        }
+      }
+
+      res.AppendLine($"    }}");  // end class
+      if (incluedNameSpace) {
+        res.AppendLine($"}}");
+      }
+      return res.ToString();
+    }
+    public static string GenerateMethodIntf(this Item tnMethod, Types types) {
+      StringBuilder res = new StringBuilder();
+      string ac = tnMethod.GenerateAccessibility(types).Trim();
+      string bt = tnMethod.GenerateBaseType();
+      Item ParentItem = (Item)tnMethod.Parent;
+      bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
+      string msgParams = "";
+      foreach (Item tnParam in tnMethod.Nodes) {
+        if (tnParam.TypeId == (int)TnType.MethodParam) {
+          msgParams = msgParams + ((msgParams == "") ? tnParam.GenerateMethodParam(types) : ", " + tnParam.GenerateMethodParam(types));
+        }
+      }
+      if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
+        bt = "";
+      }
+      if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
+        res.AppendLine($"        {ac} {bt}{tnMethod.Text}({msgParams});");
+      }
+      return res.ToString();
+    }
+    public static string GenerateMethod(this Item tnMethod, Types types) {
+      StringBuilder res = new StringBuilder();
+      string ac = tnMethod.GenerateAccessibility(types);
+      string bt = tnMethod.GenerateBaseType();
+      Item ParentItem = (Item)tnMethod.Parent;
+      bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
+      if (drawRounts) {
+        res.AppendLine($"        [Route(\"{tnMethod.Text.AsLowerCaseFirstLetter()}\", Name = \"{tnMethod.Text.AsUpperCaseFirstLetter()}\")]");
+        if (tnMethod.ValueTypeId != 0){ 
+          string decor = types[tnMethod.ValueTypeId].Desc;
+          res.AppendLine($"        {decor}");
+        }
+      }
+      string msgParams = "";
+      foreach (Item tnParam in tnMethod.Nodes) {
+        if (tnParam.TypeId == (int)TnType.MethodParam) {
+          msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types) : ", "+tnParam.GenerateMethodParam(types));
+        }
+      }
+      if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
+        bt = "";
+      }
+      res.AppendLine($"        {ac}{bt}{tnMethod.Text}({msgParams}) {{  }}"); 
+      return res.ToString(); 
+    }
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {
       string r = $"-- a table create {Cs.nl}Create Table {tnTable.Text}({Cs.nl}";
       bool hasId = false; bool ftt = true;
