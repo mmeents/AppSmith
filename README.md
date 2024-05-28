@@ -3,18 +3,45 @@ C# MS-SQL Database table modeler.
 
 ![SQLView](https://mmeents.github.io/files/AppSmithSqlTable.png)
 
-App using Tree Control that Reads/Saves as a Dictionary via MessagePack to a file.    
-tree is a model of a Server.  So far I have code parsing/generation to SQL Tables. 
-can imagine doing more with functions views and procedures as well as c# entities API controllers and methods
 
-first version models database tables and code needed when working with them.    
-Started typing out and naming Api endpoints and controller methods. 
+App using TreeView Control that Reads/Saves as a Table/Dictionary via [MessagePack](https://github.com/MessagePack-CSharp/MessagePack-CSharp) to and from a file.    
 
-Project target Framework net48 showcases the following components 
- Visual Studio Standard Tree View control, splitter, and tab controls.
- package FCTB version 2.16.24  - For the syntax highlighting text editors.
- package MessagePack version 2.5.140 - For the high-performance object serialization  
- package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
+This app is a port of [DBWorkshop](https://github.com/mmeents/DBWorkshop) a code generator that connects to a MSSql DB and generates code from objects found.  
+  - Difference being this app does connect to any database.  
+  - Stores the model as a file in the file system using asm extension.
+
+Tree is a model of a Server, Can have many APIs and DBs.  
+  - Design Tables, Stored Procedues, Api(namespace), Controllers and Classes headers with right click in tree and Add menu item.
+  - So far code parsing of SQL Tables and SQL Stored Procs into the tree model from pastable Input tab. 
+    - Stored Procs Once defigned, generates a regular CSharp Repo Class methods calling it. 
+  - As Far as Generation, 
+    - On Sql side, 
+      - Standard Add Update stored procedure generation, 
+      - Cursor procedure generator. 
+    - On CSharp Sql side, 
+      - Entity Class for table
+      - Repository Class output, Standard Dapper wrappers for
+        - Get All 
+        - Get Single by Id
+        - Update via AddUpdate stored proc call
+        - Delete row call 
+      - FileTable Class generator in CSharp to showcase [FileTable](https://github.com/mmeents/FileTable) package.
+      - Standard Add Update stored procedure for user defigned modeled stored procedures.
+    - On Api side, Use tree to design c# output generation 
+      - Right click on tree and Add Menu will reveal what types are available at the current level of the tree.
+      - Generates Controller Classes output 
+      - Design Generate Classes in general.  
+      - Design Properties, Methods, Method Parameters. 
+      - Interface generation for all classes, controllers. 
+  - Code generation from the tree on the api side works for designing Api.  The Constructor and Di needs work in code gen part. 
+
+Anyway it's a starter UML designer.  Full source included.  Clone a copy and modify to your own style add tabs, code is extendable.   
+
+  - Project target Framework net48 showcases the following components 
+    - Visual Studio Standard Tree View control, splitter, and tab controls.
+  - Package FCTB version 2.16.24  - For the syntax highlighting text editors.
+  - package MessagePack version 2.5.140 - For the high-performance object serialization  
+  - package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
 
 So sorry no build, if I built it for you, your os wouldn't trust it anyway so good reason to download Visual Studio Community edition and build and run it.
 
