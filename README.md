@@ -3,21 +3,21 @@ C# MS-SQL Database table modeler.
 
 ![SQLView](https://mmeents.github.io/files/AppSmithSqlTable.png)
 
-
+[See Wiki](https://github.com/mmeents/AppSmith/wiki/Index) Index for more on Install and UI details.
 App using TreeView Control that Reads/Saves as a Table/Dictionary via [MessagePack](https://github.com/MessagePack-CSharp/MessagePack-CSharp) to and from a file.    
 
 This app is a port of [DBWorkshop](https://github.com/mmeents/DBWorkshop) a code generator that connects to a MSSql DB and generates code from objects found.  
-  - Difference being this app does connect to any database.  
+  - Difference being this app does not connect to any database.  
   - Stores the model as a file in the file system using asm extension.
 
 Tree is a model of a Server, Can have many APIs and DBs.  
   - Design Tables, Stored Procedues, Api(namespace), Controllers and Classes headers with right click in tree and Add menu item.
   - So far code parsing of SQL Tables and SQL Stored Procs into the tree model from pastable Input tab. 
-    - Stored Procs Once defigned, generates a regular CSharp Repo Class methods calling it. 
+    - Stored Procs Once defigned, generates a regular CSharp Repo Class methods. 
   - As Far as Generation, 
-    - On Sql side, 
+    - On Sql Table side, 
       - Standard Add Update stored procedure generation, 
-      - Cursor procedure generator. 
+      - foreach Cursor procedure generator. 
     - On CSharp Sql side, 
       - Entity Class for table
       - Repository Class output, Standard Dapper wrappers for
@@ -43,7 +43,7 @@ Anyway it's a starter UML designer.  Full source included.  Clone a copy and mod
   - package MessagePack version 2.5.140 - For the high-performance object serialization  
   - package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
 
-So sorry no build, if I built it for you, your os wouldn't trust it anyway so good reason to download Visual Studio Community edition and build and run it.
+Building and running the code yourself is the best way to ensure it works as intended. Downloading Visual Studio Community edition is a free and easy way to achieve this
 
 Cheers
 
