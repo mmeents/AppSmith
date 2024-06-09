@@ -378,10 +378,16 @@ namespace AppSmith.Models {
          paramType = tnMethodParam.Code;
        } else { 
          paramType = types[tId].Name;
-       }       
-       return paramType+" "+ tnMethodParam.Text;
-
+       }
+      string ParamName = tnMethodParam.Text;
+      string ParamAttrb = "";
+      if (ParamName.Parse(" ").Length > 1) {
+        ParamName = ParamName.ParseLast(" ");
+        ParamAttrb = tnMethodParam.Text.Substring(0, tnMethodParam.Text.Length - ParamName.Length).Trim()+" ";
+      }
+      return ParamAttrb+ paramType+" "+ ParamName;
     }
+
     public static string GenerateAccessibility(this Item tnClass, Types types) {
       var sa = tnClass.Code.Parse(",");
       if ((sa == null) || (sa.Length != 7)) {
@@ -408,20 +414,23 @@ namespace AppSmith.Models {
 
     public static string GenerateControllerIntf(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
+      string className = "I" + tnController.Text;
       string ver = tnController.ValueTypeSize;
       string AccessibilityClause = tnController.GenerateAccessibility(types);
-      string baseType = tnController.GenerateBaseType();
+      string baseType = tnController.GenerateBaseType().Trim();
+      if ((baseType == className) || (baseType == "object")) baseType = "";
       baseType = string.IsNullOrWhiteSpace(baseType)? "" : " : "+baseType;
 
       if (incluedNameSpace) {
         res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
       }      
-      res.AppendLine($"{Cs.nl}    {AccessibilityClause}interface I{tnController.Text}{baseType}{Cs.nl}    {{"); // begin controller class      
+      res.AppendLine($"{Cs.nl}    {AccessibilityClause}interface {className}{baseType}{Cs.nl}    {{"); // begin controller class      
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
-          string ac = tnMethod.GenerateAccessibility(types);
+          string ac = tnMethod.GenerateAccessibility(types).Trim();
           string bt = tnMethod.GenerateBaseType();
           if (ac.Length>0 && ac.Parse(" ")[0] == "public") { 
+            ac = ac + " ";
             res.AppendLine("        " + ac + bt + " " + tnMethod.Text + ";");
           }
         }
@@ -442,9 +451,11 @@ namespace AppSmith.Models {
     }
     public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
+      string className = tnController.Text;
       string ver = tnController.ValueTypeSize;
       string AccessibilityClause = tnController.GenerateAccessibility(types);
       string baseType = tnController.GenerateBaseType();
+      if ((baseType == className) || (baseType == "object")) baseType = "";
       baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
       if (incluedNameSpace) {
         res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
@@ -454,7 +465,7 @@ namespace AppSmith.Models {
       res.AppendLine( "    [ApiController]");
       res.AppendLine($"    [ApiVersion(\"{ver}\")]");
       res.AppendLine($"    [Authorize]");
-      res.AppendLine($"    {AccessibilityClause}class {tnController.Text}{baseType}{Cs.nl}    {{"); // begin controller class      
+      res.AppendLine($"    {AccessibilityClause}class {className}{baseType}{Cs.nl}    {{"); // begin controller class      
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
@@ -477,15 +488,19 @@ namespace AppSmith.Models {
 
     public static string GenerateClass(this Item tnClass, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
+      string className = tnClass.Text;
       string ver = tnClass.ValueTypeSize;      
       string AccessibilityClause = tnClass.GenerateAccessibility(types);
       string baseType = tnClass.GenerateBaseType();
+      if ((baseType == className) || (baseType == "object")) baseType ="";
       baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
       if (incluedNameSpace) {
-        res.AppendLine($"namespace {tnClass.Parent.Text} {{ ");
+        if (tnClass.Parent != null) { 
+          res.AppendLine($"namespace {tnClass.Parent.Text} {{ ");
+        }
       }
       res.AppendLine(tnClass.GenerateControllerIntf(types, false));
-      res.AppendLine($"    {AccessibilityClause}class {tnClass.Text}{baseType}{Cs.nl}    {{"); // begin class
+      res.AppendLine($"    {AccessibilityClause}class {className}{baseType}{Cs.nl}    {{"); // begin class
       foreach (Item tnMethod in tnClass.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
@@ -513,15 +528,16 @@ namespace AppSmith.Models {
       bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
       string msgParams = "";
       foreach (Item tnParam in tnMethod.Nodes) {
-        if (tnParam.TypeId == (int)TnType.MethodParam) {
+        if (tnParam.TypeId == (int)TnType.MethodParam) {          
           msgParams = msgParams + ((msgParams == "") ? tnParam.GenerateMethodParam(types) : ", " + tnParam.GenerateMethodParam(types));
         }
       }
       if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
         bt = "";
       }
+      string MethodName = tnMethod.Text;      
       if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
-        res.AppendLine($"        {ac} {bt}{tnMethod.Text}({msgParams});");
+        res.AppendLine($"        {ac} {bt}{MethodName}({msgParams});");
       }
       return res.ToString();
     }
