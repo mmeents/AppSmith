@@ -37,8 +37,8 @@ namespace AppSmith.Models {
             this.SelectedImageIndex = (int)Tii.Database;
             break;
           case (int)TnType.Api:
-            this.ImageIndex = (int)Tii.Server;
-            this.SelectedImageIndex = (int)Tii.Server;
+            this.ImageIndex = (int)Tii.Share;
+            this.SelectedImageIndex = (int)Tii.Share;
             break;
           case (int)TnType.Procedures:
             this.ImageIndex = (int)Tii.Folder;
@@ -57,8 +57,8 @@ namespace AppSmith.Models {
             this.SelectedImageIndex = (int)Tii.Folder;
             break;
           case (int)TnType.Controller:
-            this.ImageIndex = (int)Tii.Folder;
-            this.SelectedImageIndex = (int)Tii.Folder;
+            this.ImageIndex = (int)Tii.Share;
+            this.SelectedImageIndex = (int)Tii.Share;
             break;
           case (int)TnType.Table:
             this.ImageIndex = (int)Tii.Table;
@@ -105,8 +105,8 @@ namespace AppSmith.Models {
             this.SelectedImageIndex = (int)Tii.Column;
             break;
           case (int)TnType.Class:
-            this.ImageIndex = (int)Tii.Folder;
-            this.SelectedImageIndex = (int)Tii.Folder;
+            this.ImageIndex = (int)Tii.Table;
+            this.SelectedImageIndex = (int)Tii.Table;
             break;
           case (int)TnType.Property:
             this.ImageIndex = (int)Tii.Column;
@@ -493,6 +493,7 @@ namespace AppSmith.Models {
         foreach (Item cItem in item.Nodes) {
           NestedRemoveItem(cItem);
         }
+        _items.Remove(item.Id);
       }
     }
 

@@ -11,6 +11,7 @@ This app is a port of [DBWorkshop](https://github.com/mmeents/DBWorkshop) a code
   - Stores the model as a file in the file system using asm extension.
 
 Tree is a model of a Server, Can have many APIs and DBs.  
+  - New Set OpenApiJsonUrl to a web services OpenApi URL and then right click the server and click Import API to download the file and import it into the model. 
   - Design Tables, Stored Procedues, Api(namespace), Controllers and Classes headers with right click in tree and Add menu item.
   - So far code parsing of SQL Tables and SQL Stored Procs into the tree model from pastable Input tab. 
     - Stored Procs Once defigned, generates a regular CSharp Repo Class methods. 
@@ -42,6 +43,7 @@ Anyway it's a starter UML designer.  Full source included.  Clone a copy and mod
   - Package FCTB version 2.16.24  - For the syntax highlighting text editors.
   - package MessagePack version 2.5.140 - For the high-performance object serialization  
   - package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
+  - package Microsoft OpenApi version 1.6.4 - for Deserializing the spec. 
 
 Building and running the code yourself is the best way to ensure it works as intended. Downloading Visual Studio Community edition is a free and easy way to achieve this
 
