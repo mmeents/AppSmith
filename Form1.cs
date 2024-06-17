@@ -521,7 +521,10 @@ namespace AppSmith {
             string lastTagName = "";
             Item cont = _inEditItem;
             Item iapi = _inEditItem;          
-            iapi = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Api], $"API {OAPI.Info.Title}");       
+
+            iapi = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Api], $"{OAPI.Info.Title}.API"); 
+            iapi.Code = OAPIr.RawJson;
+
             foreach(var compName in OAPI.Components.Schemas.Keys) { 
               try {
                 var className = compName;                
@@ -545,43 +548,48 @@ namespace AppSmith {
               }
             } // end for each component class
 
-            foreach (string pathKey in OAPI.Paths.Keys) {
-              try { 
-               
+            foreach (string pathKey in OAPI.Paths.Keys) {            //  for each path
+              try {                
                 var ops = OAPI.Paths[pathKey].Operations;
                 foreach (var opKey in ops.Keys) {
+
                   try {
                     Item meth = _inEditItem;
                     var tag = ops[opKey].Tags[0];                
-                    var methodtypestr = Enum.GetName(typeof(OperationType), opKey);
-                    if ((tag != null && !string.IsNullOrEmpty(tag.Name)) && lastTagName != tag.Name + "Controller") {
-                      lastTagName = tag.Name + "Controller";
+                    
+                    if ((tag != null && !string.IsNullOrEmpty(tag.Name)) && lastTagName != tag.Name.AsUpperCaseFirstLetter() + "Controller") {
+                      lastTagName = tag.Name.AsUpperCaseFirstLetter() + "Controller";
                       var sr = iapi.Nodes.Find(lastTagName, false);
                       if (sr.Length > 0) {
                         cont = sr[0] as Item;
                       } else {
                         cont = _itemCaster.SaveNewChildItemsFromText(iapi, _types[(int)TnType.Controller], lastTagName);
                         cont.Code = $"false,false,false,false,false,I{lastTagName},74";
+                        cont.ValueTypeSize = $"{OAPI.Info.Version},{pathKey}"; // version default 
                       }                  
-                      cont.ValueTypeSize = OAPI.Info.Version; // version default 
+                      
                     }
 
                     
-                    try { 
-                      var OpId = ops[opKey].OperationId;
-                      meth = _itemCaster.SaveNewChildItemsFromText(cont, _types[(int)TnType.Method], OpId);
-                      meth.ValueTypeId = GetMethodTypeFor(methodtypestr);
+                    try {
+                      string[] methParts = ops[opKey].ParseOpenApiOpForMethod(opKey,_types).Parse(",");
+                      string MethReturnType = methParts[0];
+                      string MethodName = methParts[1];                      
+                      meth = _itemCaster.SaveNewChildItemsFromText(cont, _types[(int)TnType.Method], MethodName);                      
+                      meth.ValueTypeId = methParts[2].AsInt();
+                      meth.ValueTypeSize = $"{pathKey}";
+                      meth.Code = $"false,false,false,false,false,{MethReturnType},74";
                       var pms = ops[opKey].Parameters;
                       foreach (var p in pms) {
-                        var paramName = p.Name;
-                        if (paramName != "api-version") { 
-                          var paramType = p.Schema.Type;
-                          var mp = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], paramName);
-                          mp.ValueTypeId = GetParamTypefor(paramType);               
-                          if (mp.ValueTypeId == 80) {                   
-                            mp.Code = paramType;
-                          } 
-                        }
+                        var pr = p.ParseParameter(_types);
+                        if ((pr != null) && (pr.MethodParams.Count>0)){ 
+                          foreach(var p2 in pr.MethodParams) {
+                            var mpm = p2.Parse(",");
+                            var mpr = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"{mpm[0]}");
+                            mpr.ValueTypeId = mpm[1].AsInt();
+                            mpr.Code = mpm[2];
+                          }
+                        }                        
                       }  // for each op param
                     } catch(Exception ew) { 
                       LogMsg(ew.Message);
@@ -589,16 +597,12 @@ namespace AppSmith {
                 
                     var aRB = ops[opKey].RequestBody;
                     if (aRB != null && (meth != null)) { 
-                      var aRef = aRB.Content["text/json"].Schema.Reference.Id;
-                      if (aRef != null) { 
-                        string bodyRef = aRef;
-                        if (bodyRef.Length > 0 && bodyRef[0] == 'I') { 
-                          bodyRef = bodyRef.Substring(1);
-                        }
-                        var mp = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"[FromBody] {bodyRef}");
-                        mp.ValueTypeId = 80;
-                        mp.Code = aRef;
-                    
+                      var aRBr = aRB.ParseRequestBody(_types);
+                      foreach(var p in aRBr.MethodParams) {
+                        var mpm = p.Parse(",");
+                        var mp = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"[FromBody] {mpm[0]}");
+                        mp.ValueTypeId = mpm[1].AsInt();
+                        mp.Code = mpm[2];
                       }
                     }                
 
@@ -630,6 +634,24 @@ namespace AppSmith {
       }
     }
 
+    private void tvBuilder_AfterLabelEdit(object sender, NodeLabelEditEventArgs e) {
+      try {
+        if (_inEditItem != (Item)e.Node) {
+          _inEditItem = (Item)e.Node;
+        }
+        if (_inEditItem == null || e.Label == null) {
+          e.CancelEdit = true;
+          return;
+        }
+        if (_inEditItem.Text != e.Label) { _inEditItem.Text = e.Label; }
+        if (_inEditItem.Dirty) _itemCaster.SaveItem(_inEditItem);
+        SetInProgress(9500);
+        ResetPropEditors(_inEditItem);
+        PopulateEditors(_inEditItem);
+      } finally {
+        SetInProgress(0);
+      }
+    }
     private void tvBuilder_AfterSelect(object sender, TreeViewEventArgs e) {
       if (!_inReorder) {
         try {
@@ -912,22 +934,36 @@ namespace AppSmith {
       if (it == null) return;
       edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
       edCSharp.Text = it.GenerateApi(_types);
+      edJSONOut.Text = it.Code;
     }
     public void PrepareController(Item it) {
       if (it == null) return;
+      Item parentItem = (it.Parent as Item);
       edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
       edCSharp.Text = it.GenerateController(_types, true);
+      if ((parentItem != null) && (parentItem.TypeId == (int)TnType.Api) && ( !String.IsNullOrEmpty(parentItem.Code) )) {
+        edJSONOut.Text = parentItem.Code;
+      } else { 
+        edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+      }
     }
     public void PrepareClass(Item it) {
       if (it == null) return;
+      Item parentItem = (it.Parent as Item);
       edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
       edCSharp.Text = it.GenerateClass(_types, true);
+      if ((parentItem != null) &&(parentItem.TypeId==(int)TnType.Api) &&(!String.IsNullOrEmpty(parentItem.Code))) {
+        edJSONOut.Text = parentItem.Code;
+      } else {
+        edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+      }
     }
 
     public void PrepareNullType(Item it) {
       if (it == null) return;
       edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
       edCSharp.Text = $"// {it.Text} C not implemented ";
+      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
     }
 
     public void PrepareListTables(Item it) { 
@@ -937,16 +973,19 @@ namespace AppSmith {
         res.AppendLine(thisItem.GenerateSqlCreateTable(_types)+Cs.nl);
       }
       edSQL.Text = res.ToString();
+      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
     }
     public void PrepareTableType(Item it) {
       if (it == null) return;
       edSQL.Text = " " + Cs.nl + it.GenerateSqlCreateTable(_types) + Cs.nl + Cs.nl + it.GenerateSQLAddUpdateStoredProc(_types) + it.GetSQLCursor(_types);
       edCSharp.Text = Cs.nl + it.GenerateCSharpRepoLikeClassFromTable(_types, true);
+      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
       edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
       edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
+      edJSONOut.Text = $"{tnProcedure.Text} JSON not implemented yet.";
     }
 
     public void PrepareFunctionType(Item tnFunction) {
@@ -979,23 +1018,16 @@ namespace AppSmith {
       _itemCaster.ParseSqlContentIntoItems(_inEditItem, sInput);     
     }
 
-
-    private void msOutput_Click(object sender, EventArgs e) {
-    }
-
-    private void toolStripMenuItem3_Click(object sender, EventArgs e) {
-      if (tabControl1.SelectedTab == tpSqlOut ) {
+    private void CopyOutputMenuItem_Click(object sender, EventArgs e) {
+      if (tabControl1.SelectedTab == tpSqlOut) {
         if (edSQL.SelectedText.Length == 0) edSQL.SelectAll();
         Clipboard.SetText(edSQL.SelectedText);
       } else if (tabControl1.SelectedTab == tpCOut) {
         if (edCSharp.SelectedText.Length == 0) edCSharp.SelectAll();
         Clipboard.SetText(edCSharp.SelectedText);
       }
-
     }
 
 
-        
   }
-
 }

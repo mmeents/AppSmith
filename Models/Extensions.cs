@@ -371,7 +371,7 @@ namespace AppSmith.Models {
       res.AppendLine($"}} ");
       return res.ToString();
     }
-    public static string GenerateMethodParam(this Item tnMethodParam, Types types) {
+    public static string GenerateMethodParam(this Item tnMethodParam, Types types, bool ForIntf) {
        int tId = tnMethodParam.ValueTypeId;
        string paramType = "";
        if (( tId == 80) || (tId == 81)) { 
@@ -383,7 +383,9 @@ namespace AppSmith.Models {
       string ParamAttrb = "";
       if (ParamName.Parse(" ").Length > 1) {
         ParamName = ParamName.ParseLast(" ");
-        ParamAttrb = tnMethodParam.Text.Substring(0, tnMethodParam.Text.Length - ParamName.Length).Trim()+" ";
+        if (!ForIntf) { 
+          ParamAttrb = tnMethodParam.Text.Substring(0, tnMethodParam.Text.Length - ParamName.Length).Trim()+" ";
+        }
       }
       return ParamAttrb+ paramType+" "+ ParamName;
     }
@@ -452,7 +454,7 @@ namespace AppSmith.Models {
     public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
       string className = tnController.Text;
-      string ver = tnController.ValueTypeSize;
+      string ver = tnController.ValueTypeSize.ParseFirst(",");
       string AccessibilityClause = tnController.GenerateAccessibility(types);
       string baseType = tnController.GenerateBaseType();
       if ((baseType == className) || (baseType == "object")) baseType = "";
@@ -529,7 +531,7 @@ namespace AppSmith.Models {
       string msgParams = "";
       foreach (Item tnParam in tnMethod.Nodes) {
         if (tnParam.TypeId == (int)TnType.MethodParam) {          
-          msgParams = msgParams + ((msgParams == "") ? tnParam.GenerateMethodParam(types) : ", " + tnParam.GenerateMethodParam(types));
+          msgParams = msgParams + ((msgParams == "") ? tnParam.GenerateMethodParam(types,true) : ", " + tnParam.GenerateMethodParam(types, true));
         }
       }
       if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
@@ -548,7 +550,7 @@ namespace AppSmith.Models {
       Item ParentItem = (Item)tnMethod.Parent;
       bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
       if (drawRounts) {
-        res.AppendLine($"        [Route(\"{tnMethod.Text.AsLowerCaseFirstLetter()}\", Name = \"{tnMethod.Text.AsUpperCaseFirstLetter()}\")]");
+        res.AppendLine($"        [Route(\"{tnMethod.ValueTypeSize.ParseLast(",")}\", Name = \"{tnMethod.Text.AsUpperCaseFirstLetter()}\")]");
         if (tnMethod.ValueTypeId != 0){ 
           string decor = types[tnMethod.ValueTypeId].Desc;
           res.AppendLine($"        {decor}");
@@ -557,7 +559,7 @@ namespace AppSmith.Models {
       string msgParams = "";
       foreach (Item tnParam in tnMethod.Nodes) {
         if (tnParam.TypeId == (int)TnType.MethodParam) {
-          msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types) : ", "+tnParam.GenerateMethodParam(types));
+          msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types, false) : ", "+tnParam.GenerateMethodParam(types, false));
         }
       }
       if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
