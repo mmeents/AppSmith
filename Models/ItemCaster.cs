@@ -12,21 +12,34 @@ using FastColoredTextBoxNS;
 namespace AppSmith.Models {
 
   public class Item : TreeNode {
-    private int _typeId = 0;
-    private int _itemRank = 0;
-    private int _valueTypeId = 0;
-    private string _valueTypeSize = "";
-    private string _code = "";
+    private int _TypeId = 0;
+    private int _ItemRank = 0;
+    private int _NullTypeId = 0;
+    private int _AccessTypeId = 0;
+    private int _SQLTypeId = 0;
+    private int _CSharpTypeId  = 0;
+    private int _MethodTypeId  = 0;
+    private int _ValueTypeId = 0;   
+    
+    private string _IsArrayTypes = "";   
+    private string _BaseClass = "";
+    private string _Code = "";
+    private string _ReturnType = "";
+    private string _Route  = "";
+    private string _SQLTypeSize= "";
+    private string _Url = "";
+    private string _Version  = "";
+    private string _ValueTypeSize = "";
 
     public bool Dirty = false;
     public Item() : base() { }
     public int Id { get; set; } = 0;
     public int OwnerId { get; set; } = 0;
     public int TypeId {
-      get { return _typeId; }
+      get { return _TypeId; }
       set {
         Dirty = true;
-        _typeId = value;
+        _TypeId = value;
         switch (this.TypeId) {
           case (int)TnType.Server:
             this.ImageIndex = (int)Tii.Server;
@@ -115,33 +128,90 @@ namespace AppSmith.Models {
         }
       }
     }    
-    public int ItemRank { get { return _itemRank; } set { _itemRank = value; Dirty = true; } }
-    public new string Text { get { return base.Text; } set { base.Text = value; Dirty = true; } }
-    public int ValueTypeId { get { return _valueTypeId; } set { _valueTypeId = value; Dirty = true; } }
-    public string ValueTypeSize { get { return _valueTypeSize;} set { _valueTypeSize = value; Dirty = true; } }
-    public string Code { get{ return _code;} set { _code = value; Dirty = true; } } 
+    public int ItemRank { get { return _ItemRank; } set { _ItemRank = value; Dirty = true; } }
+    public int NullTypeId { get { return _NullTypeId; } set { _NullTypeId = value; Dirty = true; } }
+    public int AccessTypeId { get { return _AccessTypeId; } set { _AccessTypeId = value; Dirty = true; } }
+    public int SQLTypeId { get { return _SQLTypeId; } set { _SQLTypeId = value; Dirty = true; } }
+    public int CSharpTypeId { get { return _CSharpTypeId; } set { _CSharpTypeId = value; Dirty = true; } }
+    public int MethodTypeId { get { return _MethodTypeId; } set { _MethodTypeId = value; Dirty = true; } }
+    public int ValueTypeId { get { return _ValueTypeId; } set { _ValueTypeId = value; Dirty = true; } }
+    
+
+    public string IsArrayTypes { get { return _IsArrayTypes; } set { _IsArrayTypes = value; Dirty = true; } }
+    public string BaseClass { get { return _BaseClass; } set { _BaseClass = value; Dirty = true; } }
+    public string Code { get { return _Code; } set { _Code = value; Dirty = true; } }
+    public new string Name { get { return base.Text; } set { base.Text = value; Dirty = true; } }
+    public string ReturnType { get { return _ReturnType; } set { _ReturnType = value; Dirty = true; } }
+    public string Route { get { return _Route; } set { _Route = value; Dirty = true; } }
+    public string SQLTypeSize { get { return _SQLTypeSize; } set { _SQLTypeSize = value; Dirty = true; } }
+    public string Url { get { return _Url; } set { _Url = value; Dirty = true; } }
+    public string Version { get { return _Version; } set { _Version = value; Dirty = true; } }
+    public string ValueTypeSize { get { return _ValueTypeSize;} set { _ValueTypeSize = value; Dirty = true; } }
+
+
+    
 
     public Item FromChunk(string chunk) {
       var base1 = chunk.AsBase64Decoded().Parse(" ");
       Id = base1[0].AsInt();
       OwnerId = base1[1].AsInt();
       TypeId = base1[2].AsInt();
-      _itemRank = base1[3].AsInt();
-      _valueTypeId = base1[4].AsInt();
-      _valueTypeSize = base1[5].AsBase64Decoded();
-      if (_valueTypeSize == "<NULL>") _valueTypeSize = "";
-      base.Text = base1[6].AsBase64Decoded();      
-      _code = base1[7].AsBase64Decoded();
-      if (_code == "<NULL>") _code = "";
+      _ItemRank = base1[3].AsInt();
+      _NullTypeId = base1[4].AsInt();
+      _AccessTypeId = base1[5].AsInt();
+      _SQLTypeId = base1[6].AsInt();
+      _CSharpTypeId = base1[7].AsInt();
+      _MethodTypeId = base1[8].AsInt();
+      _ValueTypeId = base1[9].AsInt();
+
+      _IsArrayTypes = base1[10].AsBase64Decoded();
+      _BaseClass = base1[11].AsBase64Decoded();
+      _Code = base1[12].AsBase64Decoded();
+      base.Text = base1[13].AsBase64Decoded();
+      _ReturnType = base1[14].AsBase64Decoded();
+      _Route = base1[15].AsBase64Decoded();
+      _SQLTypeSize = base1[16].AsBase64Decoded();
+      _Url = base1[17].AsBase64Decoded();
+      _Version = base1[18].AsBase64Decoded();
+      _ValueTypeSize = base1[19].AsBase64Decoded();
+
+      if (_IsArrayTypes == "<NULL>") _IsArrayTypes = "";
+      if (_BaseClass == "<NULL>") _BaseClass = "";
+      if (_Code == "<NULL>") _Code= "";
+      if (_ReturnType == "<NULL>") _ReturnType = "";
+      if (_SQLTypeSize == "<NULL>") _SQLTypeSize = "";
+      if (_Url == "<NULL>") _Url = "";
+      if (_Version == "<NULL>") _Version = "";
+      if (_ValueTypeSize == "<NULL>") _ValueTypeSize = "";           
+
       Dirty = false;
       return this;
     }
     public string AsChunk() {
-      string avts = this._valueTypeSize;
-      if (string.IsNullOrEmpty(this._valueTypeSize)) avts = "<NULL>";
-      string aCode = this._code;
-      if (string.IsNullOrEmpty(aCode)) aCode = "<NULL>";
-      return $"{Id} {OwnerId} {_typeId} {_itemRank} {_valueTypeId} {avts.AsBase64Encoded()} {base.Text.AsBase64Encoded()} {aCode.AsBase64Encoded()}".AsBase64Encoded();
+
+      var aIAT = _IsArrayTypes;
+      var aBC =_BaseClass;
+      var aC =_Code;      
+      var aRT = _ReturnType;
+      var aR = _Route;
+      var aSTS = _SQLTypeSize;
+      var aU = _Url;
+      var aV = _Version;
+      var aVTS = _ValueTypeSize;
+
+      if (string.IsNullOrEmpty(this._IsArrayTypes)) aIAT = "<NULL>";
+      if (string.IsNullOrEmpty(this._BaseClass)) aBC = "<NULL>";
+      if (string.IsNullOrEmpty(this._Code)) aC = "<NULL>";
+      if (string.IsNullOrEmpty(this._ReturnType)) aRT = "<NULL>";
+      if (string.IsNullOrEmpty(this._Route)) aR = "<NULL>";
+      if (string.IsNullOrEmpty(this._SQLTypeSize)) aSTS = "<NULL>";
+      if (string.IsNullOrEmpty(this._Url)) aU  = "<NULL>";
+      if (string.IsNullOrEmpty(this._Version)) aV = "<NULL>";
+      if (string.IsNullOrEmpty(this._ValueTypeSize)) aVTS = "<NULL>";
+      
+      return ($"{Id} {OwnerId} {_TypeId} {_ItemRank} {_NullTypeId} {_AccessTypeId} {_SQLTypeId} {_CSharpTypeId} {_MethodTypeId} {_ValueTypeId} "+
+             $"{aIAT.AsBase64Encoded()} {aBC.AsBase64Encoded()} {aC.AsBase64Encoded()} {base.Text.AsBase64Encoded()} {aRT.AsBase64Encoded()} "+
+             $"{aR.AsBase64Encoded()} {aSTS.AsBase64Encoded()} {aU.AsBase64Encoded()} {aV.AsBase64Encoded()} {aVTS.AsBase64Encoded()}").AsBase64Encoded();
     }
 
     public bool CanSwitchDown() {
@@ -249,7 +319,7 @@ namespace AppSmith.Models {
   }
 
   public class ItemCaster {
-    private System.Windows.Forms.TreeView _tv;
+    private TreeView _tv;
     private FilePackage _package;
     private Items _items;
     private Form1 _ownerForm;
@@ -263,7 +333,6 @@ namespace AppSmith.Models {
         if (!_inUpdate) {
           _package.PackageItems = _items;
           _package.Save();
-          //DoSetRuntimeLookup();
         }
       }
     }
@@ -277,7 +346,7 @@ namespace AppSmith.Models {
 
    
 
-    public void LoadTreeviewItemsAsync(System.Windows.Forms.TreeView ownerItem) {
+    public void LoadTreeviewItemsAsync(TreeView ownerItem) {
       ownerItem.Nodes.Clear();
       IEnumerable<Item> result = _items.GetChildrenItems(0);      
       foreach (Item item in result) {
@@ -333,7 +402,6 @@ namespace AppSmith.Models {
       if (!InUpdate) {
         _package.PackageItems = _items;
         _package.Save();
-        //DoSetRuntimeLookup();
       }
       item.Dirty = false;
       return item;
@@ -348,9 +416,7 @@ namespace AppSmith.Models {
         OwnerId = ownerItem.Id,
         ItemRank = NextRank,
         TypeId = itemType.TypeId,
-        Text = itemType.Name,
-        ValueTypeId = 0,
-        ValueTypeSize = ""
+        Name = itemType.Name
       };
       if (ownerItem != null) {
         ownerItem.Nodes.Add(dbs);
@@ -361,10 +427,9 @@ namespace AppSmith.Models {
       foreach (ItemType i in components) {
         AddSubItemFromType(dbs, i);
       }
-
-
       return dbs;
     }
+
     public Item SaveNewItemFromType(Item ownerItem, ItemType itemType) {
       Item dbs;
       int NextId = _items.GetNextId();
@@ -374,9 +439,7 @@ namespace AppSmith.Models {
           OwnerId = 0,
           ItemRank = 1,
           TypeId = itemType.TypeId,
-          Text = itemType.Name,
-          ValueTypeId = 0,
-          ValueTypeSize = ""
+          Name = itemType.Name
         };
       } else {
         int NextRank = ownerItem.Nodes.Count + 1;
@@ -385,9 +448,7 @@ namespace AppSmith.Models {
           OwnerId = ownerItem.Id,
           ItemRank = NextRank,          
           TypeId = itemType.TypeId,
-          Text = itemType.Name,          
-          ValueTypeId = 0,
-          ValueTypeSize =""
+          Name = itemType.Name          
         };
       }
       if (dbs == null) return null;
@@ -437,7 +498,6 @@ namespace AppSmith.Models {
       string[] lines = text.Parse(Environment.NewLine);
       this.InUpdate = true;
       int newItemType = itemType.TypeId;
-      //var components = _types.GetChildrenItemsNoDef(itemType.TypeId);
       if (lines.Count() > 0) {
         foreach (string line in lines) {
           bool goneNested = false;
@@ -457,10 +517,7 @@ namespace AppSmith.Models {
             OwnerId = newID,
             ItemRank = newItemRank,            
             TypeId = newItemType,
-            Text = line,            
-            ValueTypeId = 0,
-            ValueTypeSize = "",
-            Code = ""
+            Name = line
           };
           if (curParent != null) {
             curParent.Nodes.Add(dbs);
@@ -469,9 +526,7 @@ namespace AppSmith.Models {
           }
           SaveItem(dbs);
           returnItem = dbs;
-          //foreach (ItemType i in components) {
-          //  AddSubItemFromType(dbs, i);
-          //}
+
           if (goneNested) {
             curParent = dbs;
           }
@@ -656,7 +711,7 @@ namespace AppSmith.Models {
                 OwnerId = newID,
                 ItemRank = newItemRank,
                 TypeId = (int)TnType.Procedure,
-                Text = curProcName,
+                Name = curProcName,
                 ValueTypeId = 0,
                 ValueTypeSize = "",
                 Code = curCode
@@ -682,7 +737,7 @@ namespace AppSmith.Models {
                 OwnerId = newID,
                 ItemRank = newItemRank,
                 TypeId = (int)TnType.Table,
-                Text = curTableName,
+                Name = curTableName,
                 ValueTypeId = 0,
                 ValueTypeSize = "",
                 Code = curCode
@@ -776,9 +831,9 @@ namespace AppSmith.Models {
                     OwnerId = newID,
                     ItemRank = newItemRank,
                     TypeId = (int)TnType.TableColumn,
-                    Text = curColName,
-                    ValueTypeId = curColType.SqlTypeToLookupId(),
-                    ValueTypeSize = curColSize,
+                    Name = curColName,
+                    SQLTypeId = curColType.SqlTypeToLookupId(),
+                    SQLTypeSize = curColSize,
                     Code = curCode                
                   };
                   if (tableItem != null) {
@@ -807,9 +862,9 @@ namespace AppSmith.Models {
                     OwnerId = newID,
                     ItemRank = newItemRank,
                     TypeId = (int)TnType.TableColumn,
-                    Text = curColName,
-                    ValueTypeId = curColType.SqlTypeToLookupId(),
-                    ValueTypeSize = curColSize,
+                    Name = curColName,
+                    SQLTypeId = curColType.SqlTypeToLookupId(),
+                    SQLTypeSize = curColSize,
                     Code = curCode
                   };
                   if (tableItem != null) {
@@ -877,9 +932,9 @@ namespace AppSmith.Models {
                   OwnerId = newID,
                   ItemRank = newItemRank,
                   TypeId = (int)TnType.ProcedureParam,
-                  Text = curColName,
-                  ValueTypeId = curColType.SqlTypeToLookupId(),
-                  ValueTypeSize = curColSize,
+                  Name = curColName,
+                  SQLTypeId = curColType.SqlTypeToLookupId(),
+                  SQLTypeSize = curColSize,
                   Code = curCode
                 };
                 if (procItem != null) {
@@ -911,9 +966,9 @@ namespace AppSmith.Models {
                   OwnerId = newID,
                   ItemRank = newItemRank,
                   TypeId = (int)TnType.ProcedureParam,
-                  Text = curColName,
-                  ValueTypeId = curColType.SqlTypeToLookupId(),
-                  ValueTypeSize = curColSize,
+                  Name = curColName,
+                  SQLTypeId = curColType.SqlTypeToLookupId(),
+                  SQLTypeSize = curColSize,
                   Code = curCode
                 };
                 if (procItem != null) {
@@ -988,9 +1043,8 @@ namespace AppSmith.Models {
                 OwnerId = newID,
                 ItemRank = newItemRank,
                 TypeId = (int)TnType.ProcBody,
-                Text = "Body",
-                ValueTypeId = curColType.SqlTypeToLookupId(),
-                ValueTypeSize = "",
+                Name = "Body",
+                SQLTypeId = curColType.SqlTypeToLookupId(),                
                 Code = curCode
               };
               if (procItem != null) {

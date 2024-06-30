@@ -42,7 +42,7 @@ namespace AppSmith {
       if (!Directory.Exists(_defaultDir)) {
         Directory.CreateDirectory(_defaultDir);
       }      
-      _defaultSettings = _defaultDir + "\\AppSmithSettings.sft";
+      _defaultSettings = _defaultDir + "\\AppSmith4Settings.sft";
       _settingsPack = new SettingsFile(_defaultSettings, this);
       tvBuilder.ContextMenuStrip = null;
       if (!props.Enabled) props.Enabled = false;
@@ -289,7 +289,7 @@ namespace AppSmith {
         if (!deleteToolStripMenuItem.Enabled) deleteToolStripMenuItem.Enabled = true;
 
         if (_inEditItem.TypeId == (int)TnType.Server) { 
-          if (_inEditItem.Code != "") {
+          if (_inEditItem.Url != "") {
             if( !importAPIToolStripMenuItem.Enabled) importAPIToolStripMenuItem.Enabled = true;
           } else {
             if(importAPIToolStripMenuItem.Enabled) importAPIToolStripMenuItem.Enabled = false;
@@ -425,13 +425,13 @@ namespace AppSmith {
     private void AddTableToolStripMenuItem_Click(object sender, EventArgs e) {
       var tblItem = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Table], "Table");
       var ColIndx = _itemCaster.SaveNewChildItemsFromText(tblItem, _types[(int)TnType.TableColumn], "Id");
-      ColIndx.ValueTypeId = 30;
+      ColIndx.SQLTypeId = 30;
       ColIndx.Code = "IDENTITY(1,1)";
     }
 
     private void AddMethodParamMenuItem_Click(object sender, EventArgs e) {
       var mp = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.MethodParam], "Param");
-      mp.ValueTypeId = 30;
+      mp.SQLTypeId = 30;
     }
     private void columnToolStripMenuItem_Click(object sender, EventArgs e) {
       if (_inEditItem == null) return;
@@ -462,15 +462,14 @@ namespace AppSmith {
 
     private void controllerToolStripMenuItem_Click(object sender, EventArgs e) {
       var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Controller], "Controller");
-      cont.ValueTypeSize = "1.0"; // version default 
+      cont.Version = "1.0"; // version default 
     }
     private void AddClassMenuItem_Click(object sender, EventArgs e) {
-      var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Class], "Class");
-      cont.Code = "";
+      var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Class], "Class");      
     }
     private void meToolStripMenuItem_Click(object sender, EventArgs e) {
       var meth = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Method], "Method");
-      meth.ValueTypeId = 66;
+      meth.MethodTypeId = 66;
     }
     
 
@@ -511,8 +510,8 @@ namespace AppSmith {
     private async void importAPIToolStripMenuItem_ClickAsync(object sender, EventArgs e) {
       _inReorder = true;
       try {
-        if (_inEditItem.TypeId == (int)TnType.Server && !string.IsNullOrEmpty(_inEditItem.Code)) {
-          var OAPIr = await ApiExt.GetOpenApiDocFromSite(_inEditItem.Code);
+        if (_inEditItem.TypeId == (int)TnType.Server && !string.IsNullOrEmpty(_inEditItem.Url)) {
+          var OAPIr = await ApiExt.GetOpenApiDocFromSite(_inEditItem.Url);
           if (OAPIr.Status != OpenApiDocStatus.Error) { 
             foreach(var warning in OAPIr.Diagnostic.Warnings) { 
               LogMsg(warning.Message);
@@ -531,16 +530,18 @@ namespace AppSmith {
                 if ((compName.Length > 2) && (compName[0] == 'I') && (compName.Substring(1, 1).ToLower() != compName.Substring(1, 1))){ 
                   className = compName.Substring(1);                  
                 }
-                var baseType = "I" + className.AsUpperCaseFirstLetter();
                 var ClassItem = _itemCaster.SaveNewChildItemsFromText(iapi, _types[(int)TnType.Class], className);
-                ClassItem.Code = $"false,false,false,false,false,{baseType},74"; 
+                ClassItem.IsArrayTypes = "false,false,false,false,false";
+                ClassItem.BaseClass = "I" + className.AsUpperCaseFirstLetter(); 
+                ClassItem.AccessTypeId = 74;
             
                 var CompVal = OAPI.Components.Schemas[compName];
                 if (CompVal != null) { 
-                  foreach(string propName in CompVal.Properties.Keys) {
-                    var propType = ConvertToCSharpType( CompVal.Properties[propName].Type);
+                  foreach(string propName in CompVal.Properties.Keys) {                    
                     var propNameItem = _itemCaster.SaveNewChildItemsFromText(ClassItem, _types[(int)TnType.Property], propName);                                      
-                    propNameItem.Code = $"false,false,false,false,false,{propType},74";                    
+                    propNameItem.BaseClass = ConvertToCSharpType(CompVal.Properties[propName].Type);
+                    propNameItem.AccessTypeId = 74;
+                    propNameItem.IsArrayTypes = "false,false,false,false,false";                    
                   }
                 }
               } catch (Exception ee) { 
@@ -563,11 +564,13 @@ namespace AppSmith {
                       if (sr.Length > 0) {
                         cont = sr[0] as Item;
                       } else {
-                        cont = _itemCaster.SaveNewChildItemsFromText(iapi, _types[(int)TnType.Controller], lastTagName);
-                        cont.Code = $"false,false,false,false,false,I{lastTagName},74";
-                        cont.ValueTypeSize = $"{OAPI.Info.Version},{pathKey}"; // version default 
-                      }                  
-                      
+                        cont = _itemCaster.SaveNewChildItemsFromText(iapi, _types[(int)TnType.Controller], lastTagName);                        
+                        cont.AccessTypeId = 74;
+                        cont.IsArrayTypes = "false,false,false,false,false";
+                        cont.BaseClass = $"I{lastTagName}";
+                        cont.Route = pathKey;
+                        cont.Version = OAPI.Info?.Version ?? "1.0";
+                      }                               
                     }
 
                     
@@ -575,19 +578,22 @@ namespace AppSmith {
                       string[] methParts = ops[opKey].ParseOpenApiOpForMethod(opKey,_types).Parse(",");
                       string MethReturnType = methParts[0];
                       string MethodName = methParts[1];                      
-                      meth = _itemCaster.SaveNewChildItemsFromText(cont, _types[(int)TnType.Method], MethodName);                      
-                      meth.ValueTypeId = methParts[2].AsInt();
-                      meth.ValueTypeSize = $"{pathKey}";
-                      meth.Code = $"false,false,false,false,false,{MethReturnType},74";
+                      meth = _itemCaster.SaveNewChildItemsFromText(cont, _types[(int)TnType.Method], MethodName);
+                      meth.MethodTypeId = methParts[2].AsInt();
+                      meth.ReturnType = MethReturnType;
+                      meth.Route = pathKey;
+                      meth.IsArrayTypes = "false,false,false,false,false";
+                      meth.AccessTypeId = 74;                        
+                      
                       var pms = ops[opKey].Parameters;
-                      foreach (var p in pms) {
+                      foreach (var p in pms) {  // foreach Parameter in Parameters
                         var pr = p.ParseParameter(_types);
                         if ((pr != null) && (pr.MethodParams.Count>0)){ 
                           foreach(var p2 in pr.MethodParams) {
                             var mpm = p2.Parse(",");
-                            var mpr = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"{mpm[0]}");
-                            mpr.ValueTypeId = mpm[1].AsInt();
-                            mpr.Code = mpm[2];
+                            var mpr = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"{mpm[0]}");                            
+                            mpr.CSharpTypeId = mpm[1].AsInt();                            
+                            mpr.BaseClass = mpm[2];                            
                           }
                         }                        
                       }  // for each op param
@@ -595,14 +601,14 @@ namespace AppSmith {
                       LogMsg(ew.Message);
                     }
                 
-                    var aRB = ops[opKey].RequestBody;
+                    var aRB = ops[opKey].RequestBody;   // process body specifics.
                     if (aRB != null && (meth != null)) { 
                       var aRBr = aRB.ParseRequestBody(_types);
                       foreach(var p in aRBr.MethodParams) {
                         var mpm = p.Parse(",");
-                        var mp = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"[FromBody] {mpm[0]}");
-                        mp.ValueTypeId = mpm[1].AsInt();
-                        mp.Code = mpm[2];
+                        var mp = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"[FromBody] {mpm[0]}");                        
+                        mp.CSharpTypeId = mpm[1].AsInt();
+                        mp.BaseClass = mpm[2];                        
                       }
                     }                
 
@@ -643,7 +649,7 @@ namespace AppSmith {
           e.CancelEdit = true;
           return;
         }
-        if (_inEditItem.Text != e.Label) { _inEditItem.Text = e.Label; }
+        if (_inEditItem.Name != e.Label) { _inEditItem.Name = e.Label; }
         if (_inEditItem.Dirty) _itemCaster.SaveItem(_inEditItem);
         SetInProgress(9500);
         ResetPropEditors(_inEditItem);
@@ -677,10 +683,11 @@ namespace AppSmith {
         ItemType it = _types[item.TypeId];
         ItemType itCat = _types[it.CatagoryTypeId];
 
-        var cp = new PropertyGridEx.CustomProperty("Name", item.Text, it.Readonly, itCat.Text, it.Desc, it.Visible);
+        var cp = new PropertyGridEx.CustomProperty("Name", item.Name, it.Readonly, itCat.Text, it.Desc, it.Visible);
         props.Item.Add(cp);
+
         if (item.TypeId == (int)TnType.Server) {
-          var cp1 = new PropertyGridEx.CustomProperty("OpenAPIJsonURL", item.Code, false, itCat.Text, "", it.Visible);
+          var cp1 = new PropertyGridEx.CustomProperty("OpenAPIJsonURL", item.Url, false, itCat.Text, "", it.Visible);
           props.Item.Add(cp1);
         }
 
@@ -689,18 +696,18 @@ namespace AppSmith {
             item.TypeId == (int)TnType.Class || 
             item.TypeId == (int)TnType.Method
           ) {
-          var sa = item.Code.Parse(",");
-          if ((sa == null)||(sa.Length!=7)) { 
-            sa = "false,false,false,false,false,NULL,74".Parse(",");
+          var sa = item.IsArrayTypes.Parse(",");
+          if ((sa == null)||(sa.Length!=5)) { 
+            sa = "false,false,false,false,false".Parse(",");
           }
           bool isAsync = bool.Parse(sa[0]);
           bool isVirtual = bool.Parse(sa[1]);
           bool isStatic = bool.Parse(sa[2]);
           bool isAbstract = bool.Parse(sa[3]);
-          bool isSealed = bool.Parse(sa[4]);
-          string baseType = sa[5]=="NULL"? "" : sa[5];
-          int access = sa[6].AsInt();
+          bool isSealed = bool.Parse(sa[4]);          
+          string returnType = item.ReturnType == "" ? "void " : item.ReturnType;
 
+          int access = item.AccessTypeId;
           var al = _types.GetChildrenItems(73).ToArray<ItemType>();          
           cp = new PropertyGridEx.CustomProperty() {
             Name = "Access", Category = "Accessibility", Description = it.Desc, Value = _types[access].Name,
@@ -718,24 +725,28 @@ namespace AppSmith {
           props.Item.Add(cp3);
           var cp4 = new PropertyGridEx.CustomProperty("Sealed", isSealed, false, "Sealed", "Include sealed", true);
           props.Item.Add(cp4);
-          var cp5 = new PropertyGridEx.CustomProperty("BaseType", baseType, false, "Return Type", "Type class is derived from or returns", true);
-          props.Item.Add(cp5);
 
-         
+          if (item.TypeId == (int)TnType.Method) {
+            var cp5 = new PropertyGridEx.CustomProperty("ReturnType", returnType, false, "Return Type", "Returns", true);
+            props.Item.Add(cp5);
+          } else {
+            var cp5 = new PropertyGridEx.CustomProperty("Base Class", item.BaseClass, false, "Base Class", "Type class is derived", true);            
+            props.Item.Add(cp5);
+          }         
         }
 
         if (item.TypeId == (int)TnType.MethodParam) {
 
           var al = _types.GetChildrenItems(79).ToArray<ItemType>();          
           var customProperty = new PropertyGridEx.CustomProperty() {
-            Name = "Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
+            Name = "Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.CSharpTypeId].Name,
             DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
           };
           props.Item.Add(customProperty);
 
           int[] ClassStructTypes = { 80, 81 };
-          if( Array.IndexOf(ClassStructTypes, item.ValueTypeId) >= 0) {
-            var cp1 = new PropertyGridEx.CustomProperty("Type Name", item.Code, false, itCat.Text, "", it.Visible);
+          if( Array.IndexOf(ClassStructTypes, item.CSharpTypeId) >= 0) {
+            var cp1 = new PropertyGridEx.CustomProperty("Base Class", item.BaseClass, false, itCat.Text, "", it.Visible);
             props.Item.Add(cp1);
           }
 
@@ -750,12 +761,12 @@ namespace AppSmith {
         ) {
           var al = _types.GetChildrenItems(29).ToArray<ItemType>();          
           var customProperty = new PropertyGridEx.CustomProperty() {
-            Name = "Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
+            Name = "SQLType", Category = itCat.Text, Description = it.Desc, Value = _types[item.SQLTypeId].Name,
             DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
           };
           props.Item.Add(customProperty);
           
-          cp = new PropertyGridEx.CustomProperty("Size", item.ValueTypeSize, false, itCat.Text, "column size example (max)", it.Visible);
+          cp = new PropertyGridEx.CustomProperty("Size", item.SQLTypeSize, false, itCat.Text, "column size example (max)", it.Visible);
           props.Item.Add(cp);
           
           var cp1 = new PropertyGridEx.CustomProperty("Code", item.Code, false, itCat.Text, "", it.Visible);
@@ -764,14 +775,14 @@ namespace AppSmith {
         }
 
         if (item.TypeId == (int)TnType.Controller) {
-          cp = new PropertyGridEx.CustomProperty("Version", item.ValueTypeSize, false, "API Version", "Controller Version", true);
+          cp = new PropertyGridEx.CustomProperty("Version", item.Version, false, "API Version", "Controller Version", true);
           props.Item.Add(cp);
         }
         Item parent = (Item)item.Parent;
         if (item.TypeId == (int)TnType.Method && (parent.TypeId == (int)TnType.Controller)) {
           var al = _types.GetChildrenItems(65).ToArray<ItemType>();
           cp = new PropertyGridEx.CustomProperty() {
-            Name = "Method Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.ValueTypeId].Name,
+            Name = "Method Type", Category = itCat.Text, Description = it.Desc, Value = _types[item.MethodTypeId].Name,
             DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
           };
           props.Item.Add(cp);
@@ -788,14 +799,14 @@ namespace AppSmith {
     private void props_PropertyValueChanged(object s, PropertyValueChangedEventArgs e) {
       if (_inEditItem != null) {
 
-        var sa = "false,false,false,false,false,NULL,0".Parse(",");
+        var sa = "false,false,false,false,false".Parse(",");
         if (_inEditItem.TypeId == (int)TnType.Class ||
             _inEditItem.TypeId == (int)TnType.Controller ||
             _inEditItem.TypeId == (int)TnType.Property || 
             _inEditItem.TypeId == (int)TnType.Method) { 
-          sa = _inEditItem.Code.Parse(",");
-          if ((sa == null) || (sa.Length != 7)) {
-            sa = "false,false,false,false,false,NULL,0".Parse(",");
+          sa = _inEditItem.IsArrayTypes.Parse(",");
+          if ((sa == null) || (sa.Length != 5)) {
+            sa = "false,false,false,false,false".Parse(",");
           }
         }        
         bool isAsync = bool.Parse(sa[0]);
@@ -803,27 +814,32 @@ namespace AppSmith {
         bool isStatic = bool.Parse(sa[2]);
         bool isAbstract = bool.Parse(sa[3]);
         bool isSealed = bool.Parse(sa[4]);
-        string baseType = sa[5] == "NULL" ? "" : sa[5];
-        int access = sa[6].AsInt();
+        string returnType = _inEditItem.ReturnType == "" ? "void " : _inEditItem.ReturnType;        
 
         foreach (CustomProperty y in props.Item) {
           if ((y.Name == "Name")&&(!String.IsNullOrEmpty( y.Name)) ){
             if (Convert.ToString(y.Value) != _inEditItem.Name) {
-              _inEditItem.Text = Convert.ToString(y.Value);
+              _inEditItem.Name = Convert.ToString(y.Value);
+            }          
+          } else if (y.Name == "Access") {
+            if ((y.SelectedValue != null) && (Convert.ToInt32(y.SelectedValue) != _inEditItem.AccessTypeId)) {
+              _inEditItem.AccessTypeId = Convert.ToInt32(y.SelectedValue);
             }
-          } else if ((y.Name == "Type")||(y.Name == "Method Type")) {
+          } else if (y.Name == "SQLType") {
             var selVal = Convert.ToInt32(y.SelectedValue);
-            if ((selVal != _inEditItem.ValueTypeId) && (y.SelectedValue != null)){
-              _inEditItem.ValueTypeId = selVal;
+            if ((selVal != _inEditItem.SQLTypeId) && (y.SelectedValue != null)) {
+              _inEditItem.SQLTypeId = selVal;
             }
-          } else if ((y.Name == "Size")||(y.Name == "Version"))  { 
-            if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.ValueTypeSize)) {
-              _inEditItem.ValueTypeSize = y.Value.AsString();
+          } else if (y.Name == "Type") {
+            var selVal = Convert.ToInt32(y.SelectedValue);
+            if ((selVal != _inEditItem.CSharpTypeId) && (y.SelectedValue != null)) {
+              _inEditItem.CSharpTypeId = selVal;
             }
-          } else if ((y.Name == "Code")||(y.Name  == "Type Name")){
-            if ((y.Value != null)&&(y.Value.AsString() != _inEditItem.Code)) {
-              _inEditItem.Code = y.Value.AsString();
-            }
+          } else if (y.Name == "Method Type") {
+            var selVal = Convert.ToInt32(y.SelectedValue);
+            if ((selVal != _inEditItem.MethodTypeId) && (y.SelectedValue != null)){
+              _inEditItem.MethodTypeId = selVal;              
+            }                    
           } else if (y.Name == "Async") {
             if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isAsync)) {
               isAsync = Convert.ToBoolean(y.Value);
@@ -843,21 +859,34 @@ namespace AppSmith {
           } else if (y.Name == "Sealed") {
             if ((y.Value != null) && (Convert.ToBoolean(y.Value) != isSealed)) {
               isSealed = Convert.ToBoolean(y.Value);
+            }          
+          } else if (y.Name == "Base Class") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.BaseClass)) {
+              _inEditItem.BaseClass = y.Value.AsString();
             }
-          } else if (y.Name == "BaseType") {
-            if ((y.Value != null) && (y.Value.AsString() != baseType)) {
-              baseType = y.Value.AsString();
-            }
-          } else if (y.Name == "OpenAPIJsonURL") {
+          } else if (y.Name == "Code") {
             if ((y.Value != null) && (y.Value.AsString() != _inEditItem.Code)) {
               _inEditItem.Code = y.Value.AsString();
             }
-          } else if (y.Name == "Access") {
-            if ((y.Value != null) && (Convert.ToInt32(y.SelectedValue) != access)) {
-              var selVal = Convert.ToInt32(y.SelectedValue);
-              if ((selVal != access) && (y.SelectedValue != null)) {
-                access = selVal;
-              }
+          } else if (y.Name == "ReturnType") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.ReturnType)) {
+              _inEditItem.ReturnType = y.Value.AsString();
+            }
+          } else if (y.Name == "Route") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.Route)) {
+              _inEditItem.Route = y.Value.AsString();
+            }
+          } else if (y.Name == "Size") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.SQLTypeSize)) {
+              _inEditItem.SQLTypeSize = y.Value.AsString();
+            }
+          } else if (y.Name == "OpenAPIJsonURL") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.Url)) {
+              _inEditItem.Url = y.Value.AsString();
+            }
+          } else if (y.Name == "Version") {
+            if ((y.Value != null) && (y.Value.AsString() != _inEditItem.Version)) {
+              _inEditItem.Version = y.Value.AsString();
             }
           }
         }
@@ -865,11 +894,9 @@ namespace AppSmith {
             _inEditItem.TypeId == (int)TnType.Controller ||
             _inEditItem.TypeId == (int)TnType.Property || 
             _inEditItem.TypeId == (int)TnType.Method) {
-          if (string.IsNullOrEmpty(baseType)) { baseType = "NULL";}
-          baseType = baseType.Replace(" ", "").Replace(",","");
-          string newcode = $"{isAsync},{isVirtual},{isStatic},{isAbstract},{isSealed},{baseType},{access}";
-          if (_inEditItem.Code != newcode) { 
-            _inEditItem.Code = newcode;
+          string newcode = $"{isAsync},{isVirtual},{isStatic},{isAbstract},{isSealed}";
+          if (_inEditItem.IsArrayTypes != newcode) { 
+            _inEditItem.IsArrayTypes = newcode;
           }
         }
         if (_inEditItem.Dirty) {
@@ -899,7 +926,7 @@ namespace AppSmith {
         lbFocusedItem.Text = string.Empty;
          return;
       }
-      lbFocusedItem.Text = it.Text;
+      lbFocusedItem.Text = it.Name;
       switch (lit.TypeId) {
         case (int)TnType.Tables: PrepareListTables(lit); break;
         case (int)TnType.Table: PrepareTableType(lit); break;
@@ -932,38 +959,38 @@ namespace AppSmith {
     }
     public void PrepareApi(Item it) { 
       if (it == null) return;
-      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
       edCSharp.Text = it.GenerateApi(_types);
       edJSONOut.Text = it.Code;
     }
     public void PrepareController(Item it) {
       if (it == null) return;
       Item parentItem = (it.Parent as Item);
-      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
       edCSharp.Text = it.GenerateController(_types, true);
       if ((parentItem != null) && (parentItem.TypeId == (int)TnType.Api) && ( !String.IsNullOrEmpty(parentItem.Code) )) {
         edJSONOut.Text = parentItem.Code;
       } else { 
-        edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
       }
     }
     public void PrepareClass(Item it) {
       if (it == null) return;
       Item parentItem = (it.Parent as Item);
-      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
+      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
       edCSharp.Text = it.GenerateClass(_types, true);
       if ((parentItem != null) &&(parentItem.TypeId==(int)TnType.Api) &&(!String.IsNullOrEmpty(parentItem.Code))) {
         edJSONOut.Text = parentItem.Code;
       } else {
-        edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
       }
     }
 
     public void PrepareNullType(Item it) {
       if (it == null) return;
-      edSQL.Text = $"-- {it.Text} Sql not implemented yet.";
-      edCSharp.Text = $"// {it.Text} C not implemented ";
-      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
+      edCSharp.Text = $"// {it.Name} C not implemented ";
+      edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
     }
 
     public void PrepareListTables(Item it) { 
@@ -973,19 +1000,19 @@ namespace AppSmith {
         res.AppendLine(thisItem.GenerateSqlCreateTable(_types)+Cs.nl);
       }
       edSQL.Text = res.ToString();
-      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+      edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
     }
     public void PrepareTableType(Item it) {
       if (it == null) return;
       edSQL.Text = " " + Cs.nl + it.GenerateSqlCreateTable(_types) + Cs.nl + Cs.nl + it.GenerateSQLAddUpdateStoredProc(_types) + it.GetSQLCursor(_types);
       edCSharp.Text = Cs.nl + it.GenerateCSharpRepoLikeClassFromTable(_types, true);
-      edJSONOut.Text = $"{it.Text} JSON not implemented yet.";
+      edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
       edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
       edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
-      edJSONOut.Text = $"{tnProcedure.Text} JSON not implemented yet.";
+      edJSONOut.Text = $"{tnProcedure.Name} JSON not implemented yet.";
     }
 
     public void PrepareFunctionType(Item tnFunction) {

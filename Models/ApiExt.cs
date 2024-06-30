@@ -37,18 +37,17 @@ namespace AppSmith.Models {
     public static async Task<OpenApiDocResult> GetOpenApiDocFromSite(string baseUrl) {
       OpenApiDocResult result = new OpenApiDocResult(){Url= baseUrl };
       try {                 
-        using (HttpClient client = new HttpClient()) {        
+        using (HttpClient client = new HttpClient()) {
+          OpenApiDiagnostic diagnostic;
           HttpResponseMessage response = await client.GetAsync(result.Url);
           response.EnsureSuccessStatusCode();
           result.RawJson = await response.Content.ReadAsStringAsync();        
-          var reader = new OpenApiStringReader();
-          OpenApiDiagnostic diagnostic;
+          var reader = new OpenApiStringReader();          
           result.Document = reader.Read(result.RawJson, out diagnostic);
 
           var parsedJson = JsonSerializer.Deserialize<ExpandoObject>(result.RawJson);
           var options = new JsonSerializerOptions() { WriteIndented = true };
-          string formatedJSON = JsonSerializer.Serialize(parsedJson, options);
-          result.RawJson = formatedJSON;
+          result.RawJson = JsonSerializer.Serialize(parsedJson, options);           
           result.Diagnostic = diagnostic;
           if (diagnostic.Warnings.Any()) {
             result.Status = OpenApiDocStatus.Warnings;

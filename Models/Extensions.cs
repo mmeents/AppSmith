@@ -360,7 +360,7 @@ namespace AppSmith.Models {
   public static class Ic {
     public static string GenerateApi(this Item tnApi, Types types) { 
       StringBuilder res = new StringBuilder();
-      res.AppendLine($"namespace {tnApi.Text} {{ ");
+      res.AppendLine($"namespace {tnApi.Name} {{ ");
       foreach(Item tnController in tnApi.Nodes) {
         if (tnController.TypeId == (int)TnType.Controller) {
           res.AppendLine(tnController.GenerateController(types, false));
@@ -372,19 +372,19 @@ namespace AppSmith.Models {
       return res.ToString();
     }
     public static string GenerateMethodParam(this Item tnMethodParam, Types types, bool ForIntf) {
-       int tId = tnMethodParam.ValueTypeId;
+       int tId = tnMethodParam.CSharpTypeId;
        string paramType = "";
        if (( tId == 80) || (tId == 81)) { 
-         paramType = tnMethodParam.Code;
+         paramType = tnMethodParam.BaseClass;
        } else { 
          paramType = types[tId].Name;
        }
-      string ParamName = tnMethodParam.Text;
+      string ParamName = tnMethodParam.Name;
       string ParamAttrb = "";
       if (ParamName.Parse(" ").Length > 1) {
         ParamName = ParamName.ParseLast(" ");
         if (!ForIntf) { 
-          ParamAttrb = tnMethodParam.Text.Substring(0, tnMethodParam.Text.Length - ParamName.Length).Trim()+" ";
+          ParamAttrb = tnMethodParam.Name.Substring(0, tnMethodParam.Name.Length - ParamName.Length).Trim()+" ";
         }
       }
       return ParamAttrb+ paramType+" "+ ParamName;
@@ -392,32 +392,30 @@ namespace AppSmith.Models {
 
     public static string GenerateAccessibility(this Item tnClass, Types types) {
       var sa = tnClass.Code.Parse(",");
-      if ((sa == null) || (sa.Length != 7)) {
-        sa = "false,false,false,false,false,NULL,74".Parse(",");
+      if ((sa == null) || (sa.Length != 5)) {
+        sa = "false,false,false,false,false".Parse(",");
       }
       bool isAsync = bool.Parse(sa[0]);
       bool isVirtual = bool.Parse(sa[1]);
       bool isStatic = bool.Parse(sa[2]);
       bool isAbstract = bool.Parse(sa[3]);
       bool isSealed = bool.Parse(sa[4]);
-      int Access =  int.TryParse(sa[6], out int iAccess) ? iAccess: 0;
+      int Access =  tnClass.AccessTypeId;
       string baseAccess = (Access > 0)  ? types[Access].Desc : "";
       string AccessibilityClause = $"{baseAccess} {(isAsync ? "async " : "")}{(isVirtual ? "virtual " : "")}{(isStatic ? "static " : "")}{(isAbstract ? "abstract " : "")}{(isSealed ? "sealed " : "")}";
       return AccessibilityClause;
     }
-    public static string GenerateBaseType(this Item tnClass) {
-      var sa = tnClass.Code.Parse(",");
-      if ((sa == null) || (sa.Length != 7)) {
-        sa = "false,false,false,false,false,NULL,74".Parse(",");
-      }
-      string baseType = sa[5] == "NULL" ? "" : sa[5];
-      return sa[5] == "NULL" ? "" : sa[5]+" ";
+    public static string GenerateBaseType(this Item tnClass) {            
+      return tnClass.BaseClass == "NULL" ? "" : tnClass.BaseClass +" ";
+    }
+    public static string GenerateReturnType(this Item tnClass) {
+      return tnClass.ReturnType + " ";
     }
 
     public static string GenerateControllerIntf(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
-      string className = "I" + tnController.Text;
-      string ver = tnController.ValueTypeSize;
+      string className = "I" + tnController.Name;
+      string ver = tnController.Version;
       string AccessibilityClause = tnController.GenerateAccessibility(types);
       string baseType = tnController.GenerateBaseType().Trim();
       if ((baseType == className) || (baseType == "object")) baseType = "";
@@ -430,10 +428,10 @@ namespace AppSmith.Models {
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types).Trim();
-          string bt = tnMethod.GenerateBaseType();
+          string bt = tnMethod.GenerateReturnType();
           if (ac.Length>0 && ac.Parse(" ")[0] == "public") { 
             ac = ac + " ";
-            res.AppendLine("        " + ac + bt + " " + tnMethod.Text + ";");
+            res.AppendLine("        " + ac + bt + " " + tnMethod.Name + ";");
           }
         }
       }
@@ -453,8 +451,8 @@ namespace AppSmith.Models {
     }
     public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
-      string className = tnController.Text;
-      string ver = tnController.ValueTypeSize.ParseFirst(",");
+      string className = tnController.Name;
+      string ver = tnController.Version;
       string AccessibilityClause = tnController.GenerateAccessibility(types);
       string baseType = tnController.GenerateBaseType();
       if ((baseType == className) || (baseType == "object")) baseType = "";
@@ -463,16 +461,20 @@ namespace AppSmith.Models {
         res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
       }
       res.AppendLine(tnController.GenerateControllerIntf(types, false));
+      if (!string.IsNullOrEmpty(tnController.Route)) { 
+      }
       res.AppendLine( "    [Route(\"api/[controller]\")]");
       res.AppendLine( "    [ApiController]");
-      res.AppendLine($"    [ApiVersion(\"{ver}\")]");
+      if (!string.IsNullOrEmpty(ver)) {
+        res.AppendLine($"    [ApiVersion(\"{ver}\")]");
+      }
       res.AppendLine($"    [Authorize]");
       res.AppendLine($"    {AccessibilityClause}class {className}{baseType}{Cs.nl}    {{"); // begin controller class      
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
           string bt = tnMethod.GenerateBaseType();
-          res.AppendLine("        "+ac + bt + " " + tnMethod.Text+";");
+          res.AppendLine("        "+ac + bt + " " + tnMethod.Name+";");
         }
       }
       foreach (Item tnMethod in tnController.Nodes) {
@@ -490,7 +492,7 @@ namespace AppSmith.Models {
 
     public static string GenerateClass(this Item tnClass, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
-      string className = tnClass.Text;
+      string className = tnClass.Name;
       string ver = tnClass.ValueTypeSize;      
       string AccessibilityClause = tnClass.GenerateAccessibility(types);
       string baseType = tnClass.GenerateBaseType();
@@ -507,7 +509,7 @@ namespace AppSmith.Models {
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
           string bt = tnMethod.GenerateBaseType();
-          res.AppendLine("        " + ac + bt + " " + tnMethod.Text+";");
+          res.AppendLine("        " + ac + bt + " " + tnMethod.Name+";");
         }        
       }
       foreach (Item tnMethod in tnClass.Nodes) {
@@ -525,7 +527,7 @@ namespace AppSmith.Models {
     public static string GenerateMethodIntf(this Item tnMethod, Types types) {
       StringBuilder res = new StringBuilder();
       string ac = tnMethod.GenerateAccessibility(types).Trim();
-      string bt = tnMethod.GenerateBaseType();
+      string bt = tnMethod.GenerateReturnType();
       Item ParentItem = (Item)tnMethod.Parent;
       bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
       string msgParams = "";
@@ -534,10 +536,10 @@ namespace AppSmith.Models {
           msgParams = msgParams + ((msgParams == "") ? tnParam.GenerateMethodParam(types,true) : ", " + tnParam.GenerateMethodParam(types, true));
         }
       }
-      if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
+      if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 
         bt = "";
       }
-      string MethodName = tnMethod.Text;      
+      string MethodName = tnMethod.Name;      
       if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
         res.AppendLine($"        {ac} {bt}{MethodName}({msgParams});");
       }
@@ -546,13 +548,12 @@ namespace AppSmith.Models {
     public static string GenerateMethod(this Item tnMethod, Types types) {
       StringBuilder res = new StringBuilder();
       string ac = tnMethod.GenerateAccessibility(types);
-      string bt = tnMethod.GenerateBaseType();
-      Item ParentItem = (Item)tnMethod.Parent;
-      bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
-      if (drawRounts) {
-        res.AppendLine($"        [Route(\"{tnMethod.ValueTypeSize.ParseLast(",")}\", Name = \"{tnMethod.Text.AsUpperCaseFirstLetter()}\")]");
-        if (tnMethod.ValueTypeId != 0){ 
-          string decor = types[tnMethod.ValueTypeId].Desc;
+      string bt = tnMethod.GenerateReturnType();
+      Item ParentItem = (Item)tnMethod.Parent;      
+      if (ParentItem.TypeId == (int)TnType.Controller) {
+        res.AppendLine($"        [Route(\"{tnMethod.Route}\", Name = \"{tnMethod.Name.AsUpperCaseFirstLetter()}\")]");
+        if (tnMethod.MethodTypeId != 0){ 
+          string decor = types[tnMethod.MethodTypeId].Desc;
           res.AppendLine($"        {decor}");
         }
       }
@@ -562,14 +563,14 @@ namespace AppSmith.Models {
           msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types, false) : ", "+tnParam.GenerateMethodParam(types, false));
         }
       }
-      if (bt.Trim() == tnMethod.Text.Trim()) { // in case of constructor, method name and type are same. 
+      if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 
         bt = "";
       }
-      res.AppendLine($"        {ac}{bt}{tnMethod.Text}({msgParams}) {{  }}"); 
+      res.AppendLine($"        {ac}{bt}{tnMethod.Name}({msgParams}) {{  }}"); 
       return res.ToString(); 
     }
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {
-      string r = $"-- a table create {Cs.nl}Create Table {tnTable.Text}({Cs.nl}";
+      string r = $"-- a table create {Cs.nl}Create Table {tnTable.Name}({Cs.nl}";
       bool hasId = false; bool ftt = true;
       string identityColName = "";
       foreach (Item tn in tnTable.Nodes) {
@@ -577,21 +578,21 @@ namespace AppSmith.Models {
         bool isIdentity = (src.IndexOf("IDENTITY", StringComparison.CurrentCultureIgnoreCase) >= 0);
         if (isIdentity && !hasId) hasId = true;
         if (isIdentity) {
-          identityColName = tn.Text;
+          identityColName = tn.Name;
         }
         bool isNotNull = (src.IndexOf("NOT NULL", StringComparison.CurrentCultureIgnoreCase) >=0);
-        if (tn.Text.ToLower() == "id") {          
+        if (tn.Name.ToLower() == "id") {          
           r += (!ftt ? "," + Cs.nl : "") + 
-            "    " + tn.Text +" "+ types[tn.ValueTypeId].Name + tn.ValueTypeSize+" NOT NULL IDENTITY(1,1)";
+            "    " + tn.Name +" "+ types[tn.SQLTypeId].Name + tn.SQLTypeSize+" NOT NULL IDENTITY(1,1)";
           hasId = true;
         } else {
           r += (!ftt ? "," + Cs.nl: "")+ 
-            "    " + tn.Text + " " + types[tn.ValueTypeId].Name+ tn.ValueTypeSize + (isNotNull ? " NOT" : "") + " NULL"+(isIdentity? " IDENTITY(1,1)" : "");          
+            "    " + tn.Name + " " + types[tn.SQLTypeId].Name+ tn.SQLTypeSize + (isNotNull ? " NOT" : "") + " NULL"+(isIdentity? " IDENTITY(1,1)" : "");          
         }
         if (ftt) ftt = false;
       }
       if (hasId) { 
-        r += "," + Cs.nl+$"    CONSTRAINT [PK_{tnTable.Text.RemoveChar('.')}_{identityColName}] PRIMARY KEY CLUSTERED ([{identityColName}])";
+        r += "," + Cs.nl+$"    CONSTRAINT [PK_{tnTable.Name.RemoveChar('.')}_{identityColName}] PRIMARY KEY CLUSTERED ([{identityColName}])";
       }
       return r+ $"{Cs.nl})";
     }
@@ -599,8 +600,8 @@ namespace AppSmith.Models {
     public static string GenerateSQLAddUpdateStoredProc(this Item tnTable, Types types) {
       Item cn = tnTable;
       string nl = Environment.NewLine;
-      string tblText = tnTable.Text;
-      string tblTitle = tnTable.Text.RemoveChar('.');
+      string tblText = tnTable.Name;
+      string tblTitle = tnTable.Name.RemoveChar('.');
       string sSQLParam1 = tnTable.GetSQLParamList(types);
       string sInsertListAsSQlParams = tnTable.GetSQLInsertListAsSQLParam();
       string sColList = tnTable.GetSQLColumnList(false);
@@ -609,9 +610,9 @@ namespace AppSmith.Models {
       Item keyCol;
       if (tnTable.Nodes.Count > 0) {
         keyCol = (Item)tnTable.Nodes[0];
-        sKey = keyCol.Text;
+        sKey = keyCol.Name;
         sKeyB = "[" + sKey + "]";        
-        sKeyType = types[keyCol.ValueTypeId].Name+keyCol.ValueTypeSize;
+        sKeyType = types[keyCol.SQLTypeId].Name+keyCol.SQLTypeSize;
       }
       string sDefNullValue = Cs.SQLDefNullValueSQL(sKeyType);
       return
@@ -637,7 +638,7 @@ namespace AppSmith.Models {
 
     public static string GenerateSQLStoredProc(this Item tnProc, Types types) {
       Item cn = tnProc;
-      string tblText = tnProc.Text;
+      string tblText = tnProc.Name;
       string sSQLParam1 = tnProc.GetSQLParamList(types);
       string sSqlDeclare = tnProc.GetDeclareSQLParam(types);      
       string sSqlBody = tnProc.GetStProcBody();
@@ -649,12 +650,12 @@ namespace AppSmith.Models {
         sSqlBody + Cs.nl + Cs.nl +
         "-- call to execute" + Cs.nl +
         sSqlDeclare + Cs.nl +
-        $"Exec {tnProc.Text} {tnProc.GetSQLInsertListAsSQLParam(true)}";
+        $"Exec {tnProc.Name} {tnProc.GetSQLInsertListAsSQLParam(true)}";
     }
 
     public static string GenerateSQLFunction(this Item tnFunction, Types types) {
       Item cn = tnFunction;
-      string tblText = tnFunction.Text;
+      string tblText = tnFunction.Name;
       string sSQLParam1 = tnFunction.GetSQLParamList(types);
       return
         "-- Add Update SQL Stored Proc for " + tblText + "" + Cs.nl +
@@ -669,11 +670,11 @@ namespace AppSmith.Models {
       string sRes = "";
       foreach (Item tnColumn in tnTable.Nodes) {
         if (tnColumn.TypeId != (int)TnType.ProcBody) { 
-          var paramName = "@" + tnColumn.Text.RemoveChar('@');
+          var paramName = "@" + tnColumn.Name.RemoveChar('@');
           if (sRes == "") {
-            sRes = paramName + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
+            sRes = paramName + $" {types[tnColumn.SQLTypeId].Name}{tnColumn.SQLTypeSize}";
           } else {
-            sRes = sRes + "," + Environment.NewLine + "  " + paramName + $" {types[tnColumn.ValueTypeId].Name}{tnColumn.ValueTypeSize}";
+            sRes = sRes + "," + Environment.NewLine + "  " + paramName + $" {types[tnColumn.SQLTypeId].Name}{tnColumn.SQLTypeSize}";
           }
         }
       }
@@ -683,7 +684,7 @@ namespace AppSmith.Models {
     public static string GetSQLInsertListAsSQLParam(this Item tnTable, bool IncludeFirstCol = false) {
       string sRes = ""; string sFTT = "true";
       foreach (Item tn in tnTable.Nodes) {
-        var paramName = "@"+tn.Text.RemoveChar('@');
+        var paramName = "@"+tn.Name.RemoveChar('@');
         if (sFTT == "true") {
           sFTT = "false";
           if (IncludeFirstCol) {
@@ -707,9 +708,9 @@ namespace AppSmith.Models {
           sFTT = "false";  // don't include the first Keyfield.
         } else {
           if (sRes == "") {
-            sRes = "[" + tn.Text + "]";
+            sRes = "[" + tn.Name + "]";
           } else {
-            sRes = sRes + ", [" + tn.Text + "]";
+            sRes = sRes + ", [" + tn.Name + "]";
           }
         }
       }
@@ -719,7 +720,7 @@ namespace AppSmith.Models {
     public static string GetAssignChildSQLColList(this Item tnTable) {
       string sRes = ""; string sFTT = "true";
       foreach (Item tn in tnTable.Nodes) {
-        string sCurCol = tn.Text;
+        string sCurCol = tn.Name;
         if (sFTT == "true") {
           sFTT = "false";
         } else {
@@ -736,30 +737,30 @@ namespace AppSmith.Models {
     public static string GetDeclareSQLParam(this Item tnStProc) {
       string s = "";
       foreach (Item cn in tnStProc.Nodes) {
-        s = s + "declare " + cn.Text + " set " + cn.Text.ParseFirst(" ") + " = " + Cs.SQLDefNullValueSQL(cn.Text.ParseLast(" ")) + ";" + Cs.nl;
+        s = s + "declare " + cn.Name + " set " + cn.Name.ParseFirst(" ") + " = " + Cs.SQLDefNullValueSQL(cn.Name.ParseLast(" ")) + ";" + Cs.nl;
       }
       return s;
     }
     public static string GetExecSQLStoredProcedure(this Item tnStProc) {
       return "--  the call to execute " + Cs.nl
         + GetDeclareSQLParam(tnStProc) + Cs.nl
-        + $"Exec {tnStProc.Text} {tnStProc.GetSQLInsertListAsSQLParam(true)}";
+        + $"Exec {tnStProc.Name} {tnStProc.GetSQLInsertListAsSQLParam(true)}";
     }
 
     public static string GetCSharpColAsProps(this Item cn, Types types) {
       string sRes = "";
       string nl = Environment.NewLine;
       foreach (Item tn in cn.Nodes) {
-        string scol = tn.Text.AsUpperCaseFirstLetter();
-        sRes = sRes + $"    public {Cs.GetCTypeFromSQLType(types[tn.ValueTypeId].Name+tn.ValueTypeSize)} {scol}" + "{get; set;} = " + 
-          Cs.SQLDefNullValueCSharp(types[tn.ValueTypeId].Name + tn.ValueTypeSize) + ";" + nl;
+        string scol = tn.Name.AsUpperCaseFirstLetter();
+        sRes = sRes + $"    public {Cs.GetCTypeFromSQLType(types[tn.SQLTypeId].Name+tn.SQLTypeSize)} {scol}" + "{get; set;} = " + 
+          Cs.SQLDefNullValueCSharp(types[tn.SQLTypeId].Name + tn.SQLTypeSize) + ";" + nl;
       }
       return sRes;
     }
 
     public static string GenerateCSharpRepoLikeClassFromTable(this Item tnTable, Types types, bool IncludeNamespace = true) {
       Item cn = tnTable;
-      string tblName = cn.Text;
+      string tblName = cn.Name;
       String sDB = cn.Parent.Parent.Text;
       string sColListb = cn.GetSQLColumnList(true);
       string nl = Environment.NewLine;
@@ -767,9 +768,9 @@ namespace AppSmith.Models {
       string sKeyType = "", sKey = "";
       if (cn.Nodes.Count > 0) {
         Item keyCol = (Item)cn.Nodes[0];
-        sFirstCol = keyCol.Text;
+        sFirstCol = keyCol.Name;
         sKey = sFirstCol.AsLowerCaseFirstLetter();
-        sKeyType = Cs.GetCTypeFromSQLType(types[keyCol.ValueTypeId].Desc);
+        sKeyType = Cs.GetCTypeFromSQLType(types[keyCol.SQLTypeId].Desc);
       }
       string a = "";
       string d = "";
@@ -782,9 +783,9 @@ namespace AppSmith.Models {
       string sqlT;
       for (Int32 i = 0; i < tnTable.Nodes.Count; i++) {
         Item iI = (Item)tnTable.Nodes[i];
-        pU = iI.Text.AsUpperCaseFirstLetter();
-        pL = iI.Text.AsLowerCaseFirstLetter();
-        sqlT = types[iI.ValueTypeId].Desc;
+        pU = iI.Name.AsUpperCaseFirstLetter();
+        pL = iI.Name.AsLowerCaseFirstLetter();
+        sqlT = types[iI.SQLTypeId].Desc;
         a = a + (a == "" ? "" : ", ") + $"{pU} = {pL}";
         d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(sqlT)} {pL}";
         t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(\"{pU}\", ColumnType.{Cs.GetColumnTypeFromSQLType(sqlT)});";
@@ -905,17 +906,17 @@ namespace AppSmith.Models {
       for (Int32 i = 0; i < tnStProc.Nodes.Count; i++) {
         if (((Item)tnStProc.Nodes[i]).TypeId != (int)TnType.ProcBody) {
           a = a + (a == "" ? "" : ", ") + tnStProc.Nodes[i].Text.ParseFirst(" @");
-          d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[((Item)tnStProc.Nodes[i]).ValueTypeId].Desc)} {tnStProc.Nodes[i].Text.ParseFirst(" @")}";
+          d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(types[((Item)tnStProc.Nodes[i]).SQLTypeId].Desc)} {tnStProc.Nodes[i].Text.ParseFirst(" @")}";
         }
       }
-      string className = tnStProc.Text.ParseLast(".").AsUpperCaseFirstLetter();
+      string className = tnStProc.Name.ParseLast(".").AsUpperCaseFirstLetter();
       var s = "" + Cs.nl +
         $"    public async Task<ActionResult> Exec{className}Async({d}) " + "{" + Cs.nl +
         $"      string connectionString = Settings.GetConnectionString(\"{sDBName}\");" + Cs.nl +
         $"      {className}Result result;" + Cs.nl +
          "      var params = new {" + $"{a}" + "};" + Cs.nl +
          "      using (SqlConnection connection = new SqlConnection(connectionString)) {" + Cs.nl +
-        $"        result = await connection.QueryAsync<{className}Result>(\"{tnStProc.Text.ParseFirst(" ")}\", params, commandType: CommandType.StoredProcedure);" + Cs.nl +
+        $"        result = await connection.QueryAsync<{className}Result>(\"{tnStProc.Name.ParseFirst(" ")}\", params, commandType: CommandType.StoredProcedure);" + Cs.nl +
          "      }" + Cs.nl +
          "      return Ok(result.ToJson());" + Cs.nl +
          "    }" + Cs.nl + Cs.nl;
@@ -926,7 +927,8 @@ namespace AppSmith.Models {
       string s = "";
       foreach (Item cn in tnStProc.Nodes) {
         if (cn.TypeId != (int)TnType.ProcBody) {
-          s = s + $"declare @{cn.Text.RemoveChar('@')} {types[cn.ValueTypeId].Name}{cn.ValueTypeSize} set @" + cn.Text.RemoveChar('@') + " = " + Cs.SQLDefNullValueSQL(types[cn.ValueTypeId].Desc) + ";" + Cs.nl;
+          s = s + $"declare @{cn.Name.RemoveChar('@')} {types[cn.SQLTypeId].Name}{cn.SQLTypeSize} set @" + cn.Name.RemoveChar('@') + 
+            " = " + Cs.SQLDefNullValueSQL(types[cn.SQLTypeId].Desc) + ";" + Cs.nl;
         }
       }
       return s;
@@ -947,9 +949,9 @@ namespace AppSmith.Models {
       string sReturn = "";
       foreach (Item cn in rn.Nodes) {
         if (sReturn == "") {
-          sReturn = "  Declare @a" + cn.Text.ParseFirst(" ") + " " + types[cn.ValueTypeId].Name+cn.ValueTypeSize;
+          sReturn = "  Declare @a" + cn.Name.ParseFirst(" ") + " " + types[cn.SQLTypeId].Name+cn.SQLTypeSize;
         } else {
-          sReturn = sReturn + Environment.NewLine + "  Declare @a" + cn.Text.ParseFirst(" ") + " " + types[cn.ValueTypeId].Name + cn.ValueTypeSize;
+          sReturn = sReturn + Environment.NewLine + "  Declare @a" + cn.Name.ParseFirst(" ") + " " + types[cn.SQLTypeId].Name + cn.SQLTypeSize;
         }
       }
       return sReturn;
@@ -959,9 +961,9 @@ namespace AppSmith.Models {
       string sReturn = "";
       foreach (Item cn in rn.Nodes) {
         if (sReturn == "") {
-          sReturn = "@a" + cn.Text;
+          sReturn = "@a" + cn.Name;
         } else {
-          sReturn = sReturn + ", @a" + cn.Text;
+          sReturn = sReturn + ", @a" + cn.Name;
         }
       }
       return sReturn;
@@ -970,13 +972,13 @@ namespace AppSmith.Models {
       string sSQLDeclareList = tnTable.GetSQLDeclareVarColList(types);
       string sSQLColumnList = tnTable.GetSQLColumnList(true);
       string sSQLColumnVarList = tnTable.GetSQLColumnVarList(types);
-      string sObjName = tnTable.Text.RemoveChar('.').AsUpperCaseFirstLetter();
+      string sObjName = tnTable.Name.RemoveChar('.').AsUpperCaseFirstLetter();
       return Environment.NewLine + Environment.NewLine + "--  SQL Stored Proc dbo.sp_Foreach" + sObjName + " Cursor iterater" + Environment.NewLine +
         "Create Procedure dbo.sp_Foreach" + sObjName + "() as begin " + Environment.NewLine +
            sSQLDeclareList + Environment.NewLine +
         "  declare aCur cursor local fast_forward for " + Environment.NewLine +
         "  select " + sSQLColumnList + Environment.NewLine +
-        "    from " + tnTable.Text + Environment.NewLine +
+        "    from " + tnTable.Name + Environment.NewLine +
         "  open aCur fetch aCur into " + Environment.NewLine +
         "    " + sSQLColumnVarList + Environment.NewLine +
         "  while @@fetch_status = 0 begin " + Environment.NewLine +
