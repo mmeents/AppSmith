@@ -2,7 +2,7 @@
 C# MS-SQL Database table modeler.  
 
 ![SQLView](https://mmeents.github.io/files/AppSmithSqlTable.png)
-
+  
 [See Wiki](https://github.com/mmeents/AppSmith/wiki/Index) Index for more on Install and UI details.
 App using TreeView Control that Reads/Saves as a Table/Dictionary via [MessagePack](https://github.com/MessagePack-CSharp/MessagePack-CSharp) to and from a file.    
 
@@ -44,6 +44,10 @@ Anyway it's a starter UML designer.  Full source included.  Clone a copy and mod
   - package MessagePack version 2.5.140 - For the high-performance object serialization  
   - package PropertyGridEx version 1.0.0 - Property editor to modify the data. 
   - package Microsoft OpenApi version 1.6.4 - for Deserializing the spec. 
+
+![PetController](https://mmeents.github.io/files/AppSmithPetController.png)
+  - OpenApiUrl: https://petstore.swagger.io/v2/swagger.json
+  - Swagger Page: https://petstore.swagger.io/
 
 Building and running the code yourself is the best way to ensure it works as intended. Downloading Visual Studio Community edition is a free and easy way to achieve this
 
