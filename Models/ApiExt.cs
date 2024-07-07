@@ -97,11 +97,15 @@ namespace AppSmith.Models {
       if (pin == "query") { attr = "[FromQuery] "; }
       if (pin == "cookie") { attr = "[FromCookie] ";}
 
-      var paramName = attr+parameter.Name;
+      var pName = parameter.Name.Replace(" ", "").Replace("-","").Replace("+","").Replace(",", "").Replace(".", "").Replace("<", "").Replace(">", "").Replace("/", "").Replace("\\", "");
+      pName = pName.Replace(":", "").Replace(";", "").Replace("'", "").Replace("\"", "").Replace("|", "").Replace("{", "").Replace("}", "").Replace("[", "").Replace("]", "");
+
+      var paramName = attr+pName;
       
       var paramSchemaType = parameter.Schema?.Type ?? "";
       var paramContent = parameter.Content.Values.FirstOrDefault();
       var paramSchemaRef = paramContent?.Schema?.Reference?.Id??"";
+      var AnItemType = paramContent?.Schema?.Items?.Type ?? "";
       string ParamType = String.IsNullOrEmpty( paramSchemaType ) ? 
         String.IsNullOrEmpty(paramSchemaRef) ? null : paramSchemaRef
         : paramSchemaType;
@@ -112,6 +116,7 @@ namespace AppSmith.Models {
         }
       }
       if (ParamType == "array") { 
+        AnItemType = (AnItemType=="" ? "string" : AnItemType );
         ParamType = paramName.ParseLast(" ").AsUpperCaseFirstLetter()+"[]";
       }
       int mpTypeId = ParamType.GetParamTypefor(types);
@@ -174,30 +179,37 @@ namespace AppSmith.Models {
       var methodName = item.OperationId;      
       int ValueTypeId = opKey.GetMethodTypeFor(types);
       string returnType = "ActionResult";
-      foreach(var resp in item.Responses) { 
-        if (resp.Key == "200") {
-          var aResp = resp.Value;
-          if ((aResp != null)&&(aResp.Content != null)) {  
-            var firstKey = aResp.Content.FirstOrDefault();
-            var content = firstKey.Value;            
-            var tty = content.Schema?.Type?? "";
-            string testReturnType = $"ActionResult";
-            if (tty == "array") {
-              testReturnType = content.Schema?.Items?.Reference?.Id ?? ""; 
-              if (!String.IsNullOrEmpty(testReturnType)) {
-                testReturnType = $"ActionResult<IEnumerable<{testReturnType}>>";
-              }
-            } else { 
-              testReturnType = content.Schema?.Reference?.Id ?? "";   
-              if ( !String.IsNullOrEmpty( testReturnType)) { 
-                returnType = $"ActionResult<{testReturnType}>" ;
+      string desc = item?.Summary ?? "<NULL>";
+      string summary = item?.Description ?? "<NULL>";
+      try { 
+        foreach(var resp in item.Responses) { 
+          if (resp.Key == "200") {
+            var aResp = resp.Value;
+            if ((aResp != null)&&(aResp.Content != null)) {  
+              var firstKey = aResp.Content.FirstOrDefault();
+              var content = firstKey.Value;            
+              var tty = content?.Schema?.Type?? "";
+              string testReturnType = content?.Schema?.Items?.Reference?.Id ?? content?.Schema?.Items?.Type ?? "";
+              testReturnType = testReturnType == "" ? content?.Schema?.Reference?.Id ?? "" : testReturnType;
+              if (tty == "boolean") {                
+                returnType = $"ActionResult<bool>";
+              } else if (tty == "array") {               
+                if (!String.IsNullOrEmpty(testReturnType)) {
+                  returnType = $"ActionResult<IEnumerable<{testReturnType}>>";
+                } else {
+                  returnType = $"ActionResult<IEnumerable<string>>";
+                }
+              } else if (tty=="object") {                 
+                if ( !String.IsNullOrEmpty( testReturnType)) { 
+                  returnType = $"ActionResult<{testReturnType}>" ;
+                }
               }
             }
-          }
-        }        
-      }
+          }        
+        }
+      } catch { }
 
-      return $"{returnType},{methodName},{ValueTypeId}";
+      return $"{returnType},{methodName},{ValueTypeId},{desc.AsBase64Encoded()},{summary.AsBase64Encoded()}";
     }
 
   }

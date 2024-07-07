@@ -46,6 +46,7 @@ namespace AppSmith {
       _settingsPack = new SettingsFile(_defaultSettings, this);
       tvBuilder.ContextMenuStrip = null;
       if (!props.Enabled) props.Enabled = false;
+      btnStop.Visible = false;
     }
     #endregion
     #region Logging and Progress 
@@ -59,13 +60,18 @@ namespace AppSmith {
         this.edLogMsg.Text = msg + Environment.NewLine + edLogMsg.Text;
       }
     }
+    private bool ShouldStopIfRunning = false;
     public void SetInProgress(int ProgressPercent) {
       if (ProgressPercent == 0) {
         if (pbMain.Visible) pbMain.Visible = false;
         if (!tvBuilder.Enabled) tvBuilder.Enabled = true;
+        if (btnStop.Visible) btnStop.Visible = false;
+        ShouldStopIfRunning = true;
       } else {
         if (!pbMain.Visible) pbMain.Visible = true;
         if (!tvBuilder.Enabled) tvBuilder.Enabled = false;
+        if (!btnStop.Visible) btnStop.Visible = true;
+        ShouldStopIfRunning = false;
       }
       System.Windows.Forms.Application.DoEvents();
       pbMain.Value = ProgressPercent;
@@ -477,6 +483,11 @@ namespace AppSmith {
       var cont = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Property], "Prop");
     }
 
+    private void btnStop_Click(object sender, EventArgs e) {
+      if (!ShouldStopIfRunning) ShouldStopIfRunning = true;
+      Application.DoEvents();
+    }
+
     private int GetMethodTypeFor(string httpMethodType) {
       int ret = 66;
       var al = _types.GetChildrenItems(65).ToArray<ItemType>();
@@ -509,6 +520,7 @@ namespace AppSmith {
     }
     private async void importAPIToolStripMenuItem_ClickAsync(object sender, EventArgs e) {
       _inReorder = true;
+      SetInProgress(500);
       try {
         if (_inEditItem.TypeId == (int)TnType.Server && !string.IsNullOrEmpty(_inEditItem.Url)) {
           var OAPIr = await ApiExt.GetOpenApiDocFromSite(_inEditItem.Url);
@@ -523,8 +535,8 @@ namespace AppSmith {
 
             iapi = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Api], $"{OAPI.Info.Title}.API"); 
             iapi.Code = OAPIr.RawJson;
-
-            foreach(var compName in OAPI.Components.Schemas.Keys) { 
+            SetInProgress(1500);
+            foreach (var compName in OAPI.Components.Schemas.Keys) { 
               try {
                 var className = compName;                
                 if ((compName.Length > 2) && (compName[0] == 'I') && (compName.Substring(1, 1).ToLower() != compName.Substring(1, 1))){ 
@@ -538,16 +550,26 @@ namespace AppSmith {
                 var CompVal = OAPI.Components.Schemas[compName];
                 if (CompVal != null) { 
                   foreach(string propName in CompVal.Properties.Keys) {                    
-                    var propNameItem = _itemCaster.SaveNewChildItemsFromText(ClassItem, _types[(int)TnType.Property], propName);                                      
+                    var propNameItem = _itemCaster.SaveNewChildItemsFromText(ClassItem, _types[(int)TnType.Property], propName);                                                          
                     propNameItem.BaseClass = ConvertToCSharpType(CompVal.Properties[propName].Type);
+                    if (propNameItem.BaseClass == "array") {
+                      string itemsStr = CompVal.Properties[propName].Items.Type.ToString();
+                      itemsStr = string.IsNullOrEmpty( itemsStr) ? "string" : itemsStr;
+                      itemsStr = itemsStr == "object" ? CompVal.Properties[propName]?.Items?.Xml?.Name ?? "string" : itemsStr;
+                      propNameItem.BaseClass = itemsStr + "[]";
+                    }
                     propNameItem.AccessTypeId = 74;
                     propNameItem.IsArrayTypes = "false,false,false,false,false";                    
                   }
                 }
+                
               } catch (Exception ee) { 
                 LogMsg(ee.Message);
               }
+              if (ShouldStopIfRunning) { break; }
             } // end for each component class
+
+            SetInProgress(5500);
 
             foreach (string pathKey in OAPI.Paths.Keys) {            //  for each path
               try {                
@@ -556,8 +578,8 @@ namespace AppSmith {
 
                   try {
                     Item meth = _inEditItem;
-                    var tag = ops[opKey].Tags[0];                
-                    
+                    var tag = ops[opKey].Tags[0];                                   
+
                     if ((tag != null && !string.IsNullOrEmpty(tag.Name)) && lastTagName != tag.Name.AsUpperCaseFirstLetter() + "Controller") {
                       lastTagName = tag.Name.AsUpperCaseFirstLetter() + "Controller";
                       var sr = iapi.Nodes.Find(lastTagName, false);
@@ -583,11 +605,12 @@ namespace AppSmith {
                       meth.ReturnType = MethReturnType;
                       meth.Route = pathKey;
                       meth.IsArrayTypes = "false,false,false,false,false";
-                      meth.AccessTypeId = 74;                        
-                      
+                      meth.AccessTypeId = 74;  
+                      meth.Code = methParts[3] + "," + methParts[4];                      
+
                       var pms = ops[opKey].Parameters;
                       foreach (var p in pms) {  // foreach Parameter in Parameters
-                        var pr = p.ParseParameter(_types);
+                        var pr = p.ParseParameter(_types);                        
                         if ((pr != null) && (pr.MethodParams.Count>0)){ 
                           foreach(var p2 in pr.MethodParams) {
                             var mpm = p2.Parse(",");
@@ -610,7 +633,9 @@ namespace AppSmith {
                         mp.CSharpTypeId = mpm[1].AsInt();
                         mp.BaseClass = mpm[2];                        
                       }
-                    }                
+                    }
+
+                    if (ShouldStopIfRunning) { break; }
 
                   } catch (Exception ex) { 
                     LogMsg(ex.Message);
@@ -620,6 +645,7 @@ namespace AppSmith {
                 LogMsg(ex1.Message);
               }
             }  // for each path
+            SetInProgress(9500);
           } else { // was not a success
             LogMsg(OAPIr.ErrorMessage);
           }
@@ -628,6 +654,7 @@ namespace AppSmith {
         LogMsg(ex1.Message);
       }
       _inReorder = false;
+      SetInProgress(0);
     }
 
     #endregion
@@ -691,7 +718,11 @@ namespace AppSmith {
           props.Item.Add(cp1);
         }
 
-        if (item.TypeId == (int)TnType.Controller ||
+        if (item.TypeId == (int)TnType.Controller || item.TypeId == (int)TnType.Method ) {
+          var cp15 = new PropertyGridEx.CustomProperty("Route", item.Route, false, "Route", "urlish", true);
+          props.Item.Add(cp15);
+        }
+          if (item.TypeId == (int)TnType.Controller ||
             item.TypeId == (int)TnType.Property || 
             item.TypeId == (int)TnType.Class || 
             item.TypeId == (int)TnType.Method
@@ -786,6 +817,20 @@ namespace AppSmith {
             DisplayMember = "Name", ValueMember = "TypeId", Datasource = al, Visible = true, IsReadOnly = false, IsDropdownResizable = true
           };
           props.Item.Add(cp);
+
+          string desc = "", summary = "";
+          if (item.Code.Length > 0) { 
+            var descArr = item.Code.Parse(",");
+            desc = descArr[0].AsBase64Decoded(); 
+            summary = descArr[1].AsBase64Decoded();
+            desc = desc=="<NULL>"? "" : desc;
+            summary = summary=="<NULL>"?"": summary;
+          }
+          var cp1 = new PropertyGridEx.CustomProperty("Description", desc, false, "Description", "method desc", true);
+          props.Item.Add(cp1);
+          var cp2 = new PropertyGridEx.CustomProperty("Summary", summary, false, "Summary", "method summary", true);
+          props.Item.Add(cp2);
+          
         }
 
 
@@ -814,7 +859,16 @@ namespace AppSmith {
         bool isStatic = bool.Parse(sa[2]);
         bool isAbstract = bool.Parse(sa[3]);
         bool isSealed = bool.Parse(sa[4]);
-        string returnType = _inEditItem.ReturnType == "" ? "void " : _inEditItem.ReturnType;        
+        string returnType = _inEditItem.ReturnType == "" ? "void " : _inEditItem.ReturnType;    
+        string desc = ""; 
+        string summary="";
+        if (_inEditItem.Code.Length > 0) { 
+          var descArr = _inEditItem.Code.Parse(",");
+          desc = descArr[0].AsBase64Decoded();
+          summary = descArr[1].AsBase64Decoded();
+          desc = desc == "<NULL>" ? "" : desc;
+          summary = summary == "<NULL>" ? "" : summary;
+        }
 
         foreach (CustomProperty y in props.Item) {
           if ((y.Name == "Name")&&(!String.IsNullOrEmpty( y.Name)) ){
@@ -888,6 +942,14 @@ namespace AppSmith {
             if ((y.Value != null) && (y.Value.AsString() != _inEditItem.Version)) {
               _inEditItem.Version = y.Value.AsString();
             }
+          } else if (y.Name == "Description") {
+            if ((y.Value != null) && (y.Value.AsString() != desc)) {
+              desc = y.Value.AsString();
+            }
+          } else if (y.Name == "Summary") {
+            if ((y.Value != null) && (y.Value.AsString() != summary)) {
+              summary = y.Value.AsString();
+            }
           }
         }
         if (_inEditItem.TypeId == (int)TnType.Class ||
@@ -897,6 +959,11 @@ namespace AppSmith {
           string newcode = $"{isAsync},{isVirtual},{isStatic},{isAbstract},{isSealed}";
           if (_inEditItem.IsArrayTypes != newcode) { 
             _inEditItem.IsArrayTypes = newcode;
+          }
+          if (desc.Length>0 || summary.Length > 0) {
+            desc = desc == "" ? "<NULL>" : desc;
+            summary = summary == "" ? "<NULL>" : summary;
+            _inEditItem.Code = desc.AsBase64Encoded()+","+summary.AsBase64Encoded();
           }
         }
         if (_inEditItem.Dirty) {
@@ -967,7 +1034,8 @@ namespace AppSmith {
       if (it == null) return;
       Item parentItem = (it.Parent as Item);
       edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
-      edCSharp.Text = it.GenerateController(_types, true);
+      edCSharp.Text = it.GenerateController(_types, true)+ Environment.NewLine+
+         it.GenerateClientForController(_types) + Environment.NewLine +"}";
       if ((parentItem != null) && (parentItem.TypeId == (int)TnType.Api) && ( !String.IsNullOrEmpty(parentItem.Code) )) {
         edJSONOut.Text = parentItem.Code;
       } else { 
@@ -1004,6 +1072,7 @@ namespace AppSmith {
     }
     public void PrepareTableType(Item it) {
       if (it == null) return;
+
       edSQL.Text = " " + Cs.nl + it.GenerateSqlCreateTable(_types) + Cs.nl + Cs.nl + it.GenerateSQLAddUpdateStoredProc(_types) + it.GetSQLCursor(_types);
       edCSharp.Text = Cs.nl + it.GenerateCSharpRepoLikeClassFromTable(_types, true);
       edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
