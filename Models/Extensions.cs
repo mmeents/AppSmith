@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
@@ -405,11 +407,21 @@ namespace AppSmith.Models {
       string AccessibilityClause = $"{baseAccess} {(isAsync ? "async " : "")}{(isVirtual ? "virtual " : "")}{(isStatic ? "static " : "")}{(isAbstract ? "abstract " : "")}{(isSealed ? "sealed " : "")}";
       return AccessibilityClause;
     }
-    public static string GenerateBaseType(this Item tnClass) {            
-      return tnClass.BaseClass == "NULL" ? "" : tnClass.BaseClass +" ";
+    public static string GenerateBaseType(this Item tnClass) {  
+      string returnStr = tnClass.BaseClass;
+      returnStr = returnStr == "Object"? "I"+tnClass.Name.AsUpperCaseFirstLetter() : returnStr;      
+      return returnStr +" ";
     }
     public static string GenerateReturnType(this Item tnClass) {
-      return tnClass.ReturnType + " ";
+      return (String.IsNullOrEmpty( tnClass.ReturnType) ? tnClass.GenerateBaseType() : tnClass.ReturnType);
+    }
+
+    public static StringBuilder AddControllerNamespace(this StringBuilder bldr, string namespacestr){
+      bldr.AppendLine("using Microsoft.AspNetCore.Authorization;");
+      bldr.AppendLine("using Microsoft.AspNetCore.Mvc;");
+      bldr.AppendLine("using System.ComponentModel;"+Environment.NewLine);
+      bldr.AppendLine($"namespace {namespacestr} {{ ");
+      return bldr;
     }
 
     public static string GenerateControllerIntf(this Item tnController, Types types, bool incluedNameSpace) {
@@ -422,16 +434,16 @@ namespace AppSmith.Models {
       baseType = string.IsNullOrWhiteSpace(baseType)? "" : " : "+baseType;
 
       if (incluedNameSpace) {
-        res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
+        res.AddControllerNamespace(tnController.Parent.Text);
       }      
       res.AppendLine($"{Cs.nl}    {AccessibilityClause}interface {className}{baseType}{Cs.nl}    {{"); // begin controller class      
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types).Trim();
-          string bt = tnMethod.GenerateReturnType();
+          string bt = tnMethod.GenerateReturnType();          
           if (ac.Length>0 && ac.Parse(" ")[0] == "public") { 
             ac = ac + " ";
-            res.AppendLine("        " + ac + bt + " " + tnMethod.Name + ";");
+            res.AppendLine("        " + ac + bt + " " + tnMethod.Name.AsUpperCaseFirstLetter() + " { get; set; }");
           }
         }
       }
@@ -452,29 +464,26 @@ namespace AppSmith.Models {
     public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
       string className = tnController.Name;
-      string ver = tnController.Version;
+      string ver = tnController.Version;      
       string AccessibilityClause = tnController.GenerateAccessibility(types);
       string baseType = tnController.GenerateBaseType();
       if ((baseType == className) || (baseType == "object")) baseType = "";
-      baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
+      baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : ControllerBase, " + baseType;
       if (incluedNameSpace) {
-        res.AppendLine($"namespace {tnController.Parent.Text} {{ ");
+        res.AddControllerNamespace(tnController.Parent.Text);        
       }
       res.AppendLine(tnController.GenerateControllerIntf(types, false));
       if (!string.IsNullOrEmpty(tnController.Route)) { 
       }
       res.AppendLine( "    [Route(\"api/[controller]\")]");
-      res.AppendLine( "    [ApiController]");
-      if (!string.IsNullOrEmpty(ver)) {
-        res.AppendLine($"    [ApiVersion(\"{ver}\")]");
-      }
+      res.AppendLine( "    [ApiController]");      
       res.AppendLine($"    [Authorize]");
       res.AppendLine($"    {AccessibilityClause}class {className}{baseType}{Cs.nl}    {{"); // begin controller class      
       foreach (Item tnMethod in tnController.Nodes) {                                        // Methods 
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
           string bt = tnMethod.GenerateBaseType();
-          res.AppendLine("        "+ac + bt + " " + tnMethod.Name+";");
+          res.AppendLine("        "+ac + bt + tnMethod.Name.AsUpperCaseFirstLetter()+" { get; set; }");
         }
       }
       foreach (Item tnMethod in tnController.Nodes) {
@@ -483,12 +492,87 @@ namespace AppSmith.Models {
         }
       }
       res.AppendLine($"    }}");  // end controller class
-      if (incluedNameSpace) {
-        res.AppendLine($"}}");
-      }
       return res.ToString();
     }
     
+    public static string GenerateClientForController(this Item tnController, Types types) { 
+      StringBuilder res = new StringBuilder();
+      int contNameLen = tnController.Name.Length;
+      string ControllerName = contNameLen > 10 ? tnController.Name.Substring(0, contNameLen-10) : tnController.Name;
+      string ClientClassName = $"{ControllerName}ApiClient";
+      Item iApi = tnController.Parent as Item;
+      Item iServer = iApi.Parent as Item;
+      string BaseUrl = (String.IsNullOrEmpty( iServer?.Url) ? "https://NeedsBaseUrl/" : iServer.Url );
+      BaseUrl = BaseUrl.Substring(0,8)+BaseUrl.Substring(8).ParseFirst("/");
+
+      res.AppendLine($"    // uses RestSharp; ");
+      res.AppendLine($"    public class {ClientClassName}{{");
+      res.AppendLine( "      private static RestClient _client { get { return new RestClient(\""+BaseUrl+"\"); }}");      
+      res.AppendLine($"      public {ClientClassName}(){{");      
+      res.AppendLine( "      }");
+      foreach (Item tnMethod in tnController.Nodes) {
+        if (tnMethod.TypeId == (int)TnType.Method) {          
+          string bt = tnMethod.GenerateReturnType().Trim();
+          if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
+          if (bt.Length>13 && bt.Substring(0, 13) == "ActionResult<") { 
+            bt = bt.Substring(13);
+            bt = bt.Substring(0, bt.Length-1);
+          }
+          bt = bt.Replace("ActionResult", "RestResponse");
+          string mt = types[tnMethod.MethodTypeId].Name;
+          string urlP = "", methP = "", fromF="", fromB="", fromH="", fromQ="", fromR="";
+          string route = !String.IsNullOrEmpty(tnMethod.Route) ? tnMethod.Route : !String.IsNullOrEmpty(tnMethod.Url) ? tnMethod.Url : "MissingRoute";
+
+          foreach(Item tnMethParam in tnMethod.Nodes) {             
+            string paramAt = tnMethParam.Name.ParseFirst("[] ");
+            string paramN = tnMethParam.Name.ParseLast("[] ");
+            string paramT = (tnMethParam.CSharpTypeId != 80 ? types[tnMethParam.CSharpTypeId].Name : tnMethParam.BaseClass);
+            methP = methP + (methP != "" ? ", " : "") + paramT + " "+paramN.AsLowerCaseFirstLetter();
+
+            if (paramAt == "FromRoute") {
+              fromR = fromR + (fromR != "" ? Environment.NewLine : "") + $"        request.AddParameter(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()}, ParameterType.UrlSegment);";
+            } else if (paramAt == "FromQuery") {
+              urlP = urlP + (urlP!=""?"&":"")+paramN+"={"+ paramN.AsLowerCaseFirstLetter() + "}";
+              fromQ = fromQ + (fromQ != "" ? Environment.NewLine : "") + $"        request.AddParameter(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()}, ParameterType.QueryString);";
+            } else if (paramAt == "FromHeader") {
+              fromH = fromH + (fromH != "" ? Environment.NewLine : "") + $"        request.AddHeader(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()});";
+            } else if (paramAt == "FromBody") {
+              fromB = fromB +(fromB!=""?Environment.NewLine:"")+ $"        request.AddJsonBody<{paramT}>({paramN.AsLowerCaseFirstLetter()});";            
+            } else if (paramAt == "FromForm") {
+              fromF = fromF + (fromF != "" ? Environment.NewLine : "") + $"        request.AddParameter(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()}, ParameterType.GetOrPost);";
+            } else {
+              fromF = fromF + (fromF != "" ? Environment.NewLine : "") + $"        request.AddParameter(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()}, ParameterType.GetOrPost);";
+            }
+          }
+          if (mt == "Get") {
+            urlP = route + "?"+urlP;
+            
+            res.AppendLine($"      public async Task<{bt}> {tnMethod.Name}({methP}) {{");
+            res.AppendLine($"        string url = $\"{urlP}\";");
+            res.AppendLine($"        var hrm = await _client.GetAsync<{bt}>(url);");
+            res.AppendLine($"        return hrm;");
+            res.AppendLine("       }");
+          } else if ((mt == "Post")||(mt=="Put") || (mt == "Patch") || (mt == "Delete")) {
+            res.AppendLine($"      public async Task<RestResponse> {tnMethod.Name}({methP}) {{");
+            res.AppendLine($"        string route = $\"{route}\";");            
+            res.AppendLine($"        var request = new RestRequest(route, Method.{mt});");
+            if (fromR != "") { res.AppendLine(fromR); }
+            if (fromH != "") { res.AppendLine(fromH); }
+            if (fromQ != "") { res.AppendLine(fromQ); }
+            if (fromF != "") { res.AppendLine(fromF); }
+            if (fromB != "") { res.AppendLine(fromB); }
+            res.AppendLine($"        var hrm = await _client.{mt}Async(request);");
+            res.AppendLine($"        return hrm;");
+            res.AppendLine("       }");
+          }
+
+        }
+      }      
+
+      res.AppendLine($"    ");
+      res.AppendLine($"  }}");
+      return res.ToString();
+    }
 
     public static string GenerateClass(this Item tnClass, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
@@ -496,11 +580,12 @@ namespace AppSmith.Models {
       string ver = tnClass.ValueTypeSize;      
       string AccessibilityClause = tnClass.GenerateAccessibility(types);
       string baseType = tnClass.GenerateBaseType();
+      if (baseType == "Object") { baseType = "I" + tnClass.Name.AsUpperCaseFirstLetter(); }
       if ((baseType == className) || (baseType == "object")) baseType ="";
       baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
       if (incluedNameSpace) {
-        if (tnClass.Parent != null) { 
-          res.AppendLine($"namespace {tnClass.Parent.Text} {{ ");
+        if (tnClass.Parent != null) {
+          res.AddControllerNamespace(tnClass.Parent.Text);          
         }
       }
       res.AppendLine(tnClass.GenerateControllerIntf(types, false));
@@ -509,7 +594,8 @@ namespace AppSmith.Models {
         if (tnMethod.TypeId == (int)TnType.Property) {
           string ac = tnMethod.GenerateAccessibility(types);
           string bt = tnMethod.GenerateBaseType();
-          res.AppendLine("        " + ac + bt + " " + tnMethod.Name+";");
+          if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
+          res.AppendLine("        " + ac + bt + tnMethod.Name.AsUpperCaseFirstLetter()+ " { get; set; }");
         }        
       }
       foreach (Item tnMethod in tnClass.Nodes) {
@@ -528,6 +614,7 @@ namespace AppSmith.Models {
       StringBuilder res = new StringBuilder();
       string ac = tnMethod.GenerateAccessibility(types).Trim();
       string bt = tnMethod.GenerateReturnType();
+      if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
       Item ParentItem = (Item)tnMethod.Parent;
       bool drawRounts = (ParentItem.TypeId == (int)TnType.Controller);
       string msgParams = "";
@@ -541,7 +628,7 @@ namespace AppSmith.Models {
       }
       string MethodName = tnMethod.Name;      
       if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
-        res.AppendLine($"        {ac} {bt}{MethodName}({msgParams});");
+        res.AppendLine($"        {ac} {bt} {MethodName}({msgParams});");
       }
       return res.ToString();
     }
@@ -549,6 +636,23 @@ namespace AppSmith.Models {
       StringBuilder res = new StringBuilder();
       string ac = tnMethod.GenerateAccessibility(types);
       string bt = tnMethod.GenerateReturnType();
+      string desc = "", summary = "";
+      if (tnMethod.Code.Length > 0) { 
+        var descArr = tnMethod.Code.Parse(",");
+        if (descArr.Length == 2) { 
+          desc = descArr[0].AsBase64Decoded();
+          summary = descArr[1].AsBase64Decoded();
+          desc = desc == "<NULL>"? "" : desc;
+          summary = summary == "<NULL>" ? "" : summary;
+          if (desc.Length > 0) {
+            res.AppendLine($"        [EndpointSummary(\"{desc}\")]");            
+          }
+          if (summary.Length > 0) {
+            res.AppendLine($"        [EndpointDescription(\"{summary}\")]");
+          }
+        }
+      }
+      if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
       Item ParentItem = (Item)tnMethod.Parent;      
       if (ParentItem.TypeId == (int)TnType.Controller) {
         res.AppendLine($"        [Route(\"{tnMethod.Route}\", Name = \"{tnMethod.Name.AsUpperCaseFirstLetter()}\")]");
@@ -566,7 +670,9 @@ namespace AppSmith.Models {
       if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 
         bt = "";
       }
-      res.AppendLine($"        {ac}{bt}{tnMethod.Name}({msgParams}) {{  }}"); 
+      res.AppendLine($"        {ac}{bt} {tnMethod.Name}({msgParams}) {{");
+      res.AppendLine( "          return Ok();");
+      res.AppendLine( "        }");
       return res.ToString(); 
     }
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {

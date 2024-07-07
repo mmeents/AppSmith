@@ -179,6 +179,7 @@ namespace AppSmith.Models {
       if (_BaseClass == "<NULL>") _BaseClass = "";
       if (_Code == "<NULL>") _Code= "";
       if (_ReturnType == "<NULL>") _ReturnType = "";
+      if (_Route == "<NULL>") _Route = "";
       if (_SQLTypeSize == "<NULL>") _SQLTypeSize = "";
       if (_Url == "<NULL>") _Url = "";
       if (_Version == "<NULL>") _Version = "";
