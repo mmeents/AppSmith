@@ -898,7 +898,7 @@ namespace AppSmith.Models {
         art = Cs.GetColumnTypeFromSQLType(sqlT);
         art = art == "String" ? "" : ".AsString()";
         ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][\"{pU}\"].Value = item.{pU}{art};";        
-        b = b + (b =="" ? "" : ","+Environment.NewLine)     + $"          {pU} = _table.Rows[RowKey][\"{pU}\"].Value{Cs.GetToTypeFromStringValue(sqlT)}";
+        b = b + (b =="" ? "" : ","+Environment.NewLine)     + $"          {pU} = _table.Rows[id][\"{pU}\"].Value{Cs.GetToTypeFromStringValue(sqlT)}";
       }
       string className = tblName.RemoveChar('.').AsUpperCaseFirstLetter();
       string classVarName = className.AsLowerCaseFirstLetter();
