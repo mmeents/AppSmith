@@ -862,7 +862,7 @@ namespace AppSmith {
         string returnType = _inEditItem.ReturnType == "" ? "void " : _inEditItem.ReturnType;    
         string desc = ""; 
         string summary="";
-        if (_inEditItem.Code.Length > 0) { 
+        if (_inEditItem.TypeId == (int)TnType.Method && _inEditItem.Code.Length > 0) { 
           var descArr = _inEditItem.Code.Parse(",");
           desc = descArr[0].AsBase64Decoded();
           summary = descArr[1].AsBase64Decoded();
