@@ -148,9 +148,6 @@ namespace AppSmith.Models {
     public string Version { get { return _Version; } set { _Version = value; Dirty = true; } }
     public string ValueTypeSize { get { return _ValueTypeSize;} set { _ValueTypeSize = value; Dirty = true; } }
 
-
-    
-
     public Item FromChunk(string chunk) {
       var base1 = chunk.AsBase64Decoded().Parse(" ");
       Id = base1[0].AsInt();

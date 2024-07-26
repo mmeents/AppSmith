@@ -38,7 +38,7 @@ namespace AppSmith {
       LogMsg("Hello world");
       _types = new Types();
       _types.Load();
-      _defaultDir = _defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\PrompterFiles";
+      _defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\PrompterFiles";
       if (!Directory.Exists(_defaultDir)) {
         Directory.CreateDirectory(_defaultDir);
       }      

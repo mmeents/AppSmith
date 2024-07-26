@@ -975,28 +975,28 @@ namespace AppSmith.Models {
         t+ nl +
         "      }" + nl +
         "    }" + nl +
-       $"    public {className}? Get(int id)"+"{"+nl+
+       $"    public {className}? Get({sKeyType} id)"+"{"+nl+
         "      if(_table.Rows.Contains(id)){"+nl+
        $"        return new {className}()" + "{" + nl + b +nl+
-        "        }"+nl+
+        "        };"+nl+
         "      } else { return null; }"+nl+
         "    }"+nl+
        $"    public void Insert({className} item)"+"{" + nl +
-        "      int RowKey = _table.AddRow();" + nl +
+       $"      {sKeyType} RowKey = _table.AddRow();" + nl +
         ar+ nl +
         "      _table.Save();" + nl +
         "    }" + nl +
        $"    public void Update({className} item)" + "{" + nl +
-        "      int RowKey = item.Id;" + nl + 
+       $"      {sKeyType} RowKey = item.Id;" + nl + 
         ar + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
        $"    public void Delete({className} item)" + "{" + nl +
-        "      int RowKey = item.Id;" + nl +
+       $"      {sKeyType} RowKey = item.Id;" + nl +
         "      _table.Rows.Remove(RowKey, out Row? _);" + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
-     //   "      " + nl +
+        "    public void Save(){ _table.Save(); }  " + nl +
 
        "  }" + nl + nl +
 

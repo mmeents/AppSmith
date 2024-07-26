@@ -67,6 +67,7 @@
       this.tpLog = new System.Windows.Forms.TabPage();
       this.edLogMsg = new System.Windows.Forms.TextBox();
       this.panel1 = new System.Windows.Forms.Panel();
+      this.btnStop = new System.Windows.Forms.Button();
       this.comboBox1 = new System.Windows.Forms.ComboBox();
       this.btnOpenClose = new System.Windows.Forms.Button();
       this.lbFocusedItem = new System.Windows.Forms.Label();
@@ -76,7 +77,6 @@
       this.openStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.closeStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.odMain = new System.Windows.Forms.OpenFileDialog();
-      this.btnStop = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -430,7 +430,6 @@
       this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edInput.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edInput.IsReplaceMode = false;
       this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
       this.edInput.LeftBracket = '(';
@@ -520,7 +519,6 @@
       this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edSQL.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edSQL.IsReplaceMode = false;
       this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
       this.edSQL.LeftBracket = '(';
@@ -585,7 +583,6 @@
       this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edCSharp.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edCSharp.IsReplaceMode = false;
       this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
       this.edCSharp.LeftBracket = '(';
@@ -636,6 +633,7 @@
       this.edJSONOut.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edJSONOut.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edJSONOut.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edJSONOut.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edJSONOut.IsReplaceMode = false;
       this.edJSONOut.Language = FastColoredTextBoxNS.Language.SQL;
       this.edJSONOut.LeftBracket = '(';
@@ -681,11 +679,22 @@
       this.panel1.Controls.Add(this.lbFocusedItem);
       this.panel1.Controls.Add(this.pbMain);
       this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-      this.panel1.Location = new System.Drawing.Point(0, 28);
+      this.panel1.Location = new System.Drawing.Point(0, 30);
       this.panel1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.panel1.Name = "panel1";
       this.panel1.Size = new System.Drawing.Size(818, 39);
       this.panel1.TabIndex = 1;
+      // 
+      // btnStop
+      // 
+      this.btnStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnStop.Location = new System.Drawing.Point(682, 7);
+      this.btnStop.Name = "btnStop";
+      this.btnStop.Size = new System.Drawing.Size(59, 26);
+      this.btnStop.TabIndex = 17;
+      this.btnStop.Text = "Stop";
+      this.btnStop.UseVisualStyleBackColor = true;
+      this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
       // 
       // comboBox1
       // 
@@ -738,7 +747,7 @@
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.Name = "menuStrip1";
       this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
-      this.menuStrip1.Size = new System.Drawing.Size(818, 28);
+      this.menuStrip1.Size = new System.Drawing.Size(818, 30);
       this.menuStrip1.TabIndex = 2;
       this.menuStrip1.Text = "menuStrip1";
       // 
@@ -748,7 +757,7 @@
             this.openStripMenuItem,
             this.closeStripMenuItem});
       this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-      this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+      this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
       this.fileToolStripMenuItem.Text = "File";
       this.fileToolStripMenuItem.DropDownOpening += new System.EventHandler(this.fileToolStripMenuItem_DropDownOpening);
       // 
@@ -772,17 +781,6 @@
       this.odMain.DefaultExt = "asm";
       this.odMain.Filter = "AppSmith4Model|*.as4m";
       this.odMain.Title = "Open Archive";
-      // 
-      // btnStop
-      // 
-      this.btnStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnStop.Location = new System.Drawing.Point(682, 7);
-      this.btnStop.Name = "btnStop";
-      this.btnStop.Size = new System.Drawing.Size(59, 26);
-      this.btnStop.TabIndex = 17;
-      this.btnStop.Text = "Stop";
-      this.btnStop.UseVisualStyleBackColor = true;
-      this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
       // 
       // Form1
       // 
