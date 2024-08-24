@@ -373,6 +373,27 @@ namespace AppSmith.Models {
       res.AppendLine($"}} ");
       return res.ToString();
     }
+
+    public static string GenerateApiDoc(this Item tnApi, Types types) {
+      StringBuilder res = new StringBuilder();
+      res.AppendLine("");
+      res.AppendLine($"{tnApi.Name}");
+      res.AppendLine("- Interface Classes");
+      bool SeenFirstController = false;
+      foreach (Item tnController in tnApi.Nodes) {
+        if (tnController.TypeId == (int)TnType.Controller) {
+          if (!SeenFirstController) { 
+            SeenFirstController = true;
+            res.AppendLine("- Interface Controllers");
+          }
+          res.AppendLine(tnController.GenerateControllerDoc(types, false));
+        } else {
+          res.AppendLine(tnController.GenerateClassDoc(types, false));
+        }
+      }
+      res.AppendLine($"");
+      return res.ToString();
+    }
     public static string GenerateMethodParam(this Item tnMethodParam, Types types, bool ForIntf) {
        int tId = tnMethodParam.CSharpTypeId;
        string paramType = "";
@@ -461,6 +482,22 @@ namespace AppSmith.Models {
       }
       return res.ToString();
     }
+    public static string GenerateControllerDoc(this Item tnController, Types types, bool incluedNameSpace) {
+      StringBuilder res = new StringBuilder();
+      string className = tnController.Name;
+      string ver = tnController.Version;
+      string AccessibilityClause = tnController.GenerateAccessibility(types);
+      string baseType = tnController.GenerateBaseType();      
+     
+      res.AppendLine($"- {className.Substring(0, className.Length -10)}"); // begin controller class            
+      foreach (Item tnMethod in tnController.Nodes) {
+        if (tnMethod.TypeId == (int)TnType.Method) {
+          res.Append(tnMethod.GenerateMethodDoc(types));
+        }
+      }      
+      return res.ToString();
+    }
+
     public static string GenerateController(this Item tnController, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
       string className = tnController.Name;
@@ -574,6 +611,28 @@ namespace AppSmith.Models {
       return res.ToString();
     }
 
+    public static string GenerateClassDoc(this Item tnClass, Types types, bool incluedNameSpace) {
+      StringBuilder res = new StringBuilder();
+      string className = tnClass.Name;
+      string ver = tnClass.ValueTypeSize;      
+      string baseType = tnClass.GenerateBaseType();
+      if (baseType == "Object") { baseType = "I" + tnClass.Name.AsUpperCaseFirstLetter(); }
+      if ((baseType == className) || (baseType == "object")) baseType = "";
+      baseType = string.IsNullOrWhiteSpace(baseType) ? "" : " : " + baseType;
+            
+      res.AppendLine($"  - {className} ({baseType}) "); // begin class
+      foreach (Item tnMethod in tnClass.Nodes) {                                        // Methods 
+        if (tnMethod.TypeId == (int)TnType.Property) {          
+          string bt = tnMethod.GenerateBaseType();
+          if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
+          res.AppendLine("    - "+ tnMethod.Name.AsUpperCaseFirstLetter() + $" {bt}");
+        }
+      }     
+
+      res.AppendLine($"");  
+      return res.ToString();
+    }
+
     public static string GenerateClass(this Item tnClass, Types types, bool incluedNameSpace) {
       StringBuilder res = new StringBuilder();
       string className = tnClass.Name;
@@ -629,6 +688,62 @@ namespace AppSmith.Models {
       string MethodName = tnMethod.Name;      
       if (ac.Length > 0 && ac.Parse(" ")[0] == "public") {
         res.AppendLine($"        {ac} {bt} {MethodName}({msgParams});");
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateMethodParamDoc(this Item tnMethodParam, Types types, bool ForIntf) {
+      StringBuilder res = new StringBuilder();
+      int tId = tnMethodParam.CSharpTypeId;
+      string paramType = "";
+      if ((tId == 80) || (tId == 81)) {
+        paramType = tnMethodParam.BaseClass;
+      } else {
+        paramType = types[tId].Name;
+      }
+      string ParamName = tnMethodParam.Name;
+      string ParamAttrb = "";
+      if (ParamName.Parse(" ").Length > 1) {
+        ParamAttrb = ParamName.ParseFirst(" []").Substring(4);
+        ParamName = ParamName.ParseLast(" ").AsUpperCaseFirstLetter();        
+      }
+      res.AppendLine($"        - {ParamName} ({paramType})" +(String.IsNullOrEmpty( ParamAttrb)?"" : $" from {ParamAttrb}"));
+      return res.ToString();
+    }
+    public static string GenerateMethodDoc(this Item tnMethod, Types types) {
+      StringBuilder res = new StringBuilder();     
+      string bt = tnMethod.GenerateReturnType();
+      string desc = "", summary = "";
+
+      if (tnMethod.Code.Length > 0) {
+        var descArr = tnMethod.Code.Parse(",");
+        if (descArr.Length == 2) {
+          desc = descArr[0].AsBase64Decoded();
+          summary = descArr[1].AsBase64Decoded();
+          desc = desc == "<NULL>" ? "" : desc;
+          summary = summary == "<NULL>" ? "" : summary;         
+        }
+      }
+      if (bt == "Object") { bt = "I" + tnMethod.Name.AsUpperCaseFirstLetter(); }
+      Item ParentItem = (Item)tnMethod.Parent;
+      
+      res.AppendLine($"    - {types[tnMethod.MethodTypeId].Name} {tnMethod.Route}");
+      if (!String.IsNullOrEmpty(desc))
+        res.AppendLine($"      - Description: {desc}");
+      if (!String.IsNullOrEmpty(summary))
+        res.AppendLine($"      - Summary: {summary}");
+
+        res.AppendLine($"      - Parameters:");
+      foreach (Item tnParam in tnMethod.Nodes) {
+        if (tnParam.TypeId == (int)TnType.MethodParam) {
+          res.AppendLine(  tnParam.GenerateMethodParamDoc(types, false));
+        }
+      }
+      if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 
+        bt = "";
+      }
+      if (!String.IsNullOrEmpty(bt)) {
+        res.AppendLine($"      - Returns: {bt}");
       }
       return res.ToString();
     }
@@ -975,28 +1090,28 @@ namespace AppSmith.Models {
         t+ nl +
         "      }" + nl +
         "    }" + nl +
-       $"    public {className}? Get(int id)"+"{"+nl+
+       $"    public {className}? Get({sKeyType} id)"+"{"+nl+
         "      if(_table.Rows.Contains(id)){"+nl+
        $"        return new {className}()" + "{" + nl + b +nl+
-        "        }"+nl+
+        "        };"+nl+
         "      } else { return null; }"+nl+
         "    }"+nl+
        $"    public void Insert({className} item)"+"{" + nl +
-        "      int RowKey = _table.AddRow();" + nl +
+       $"      {sKeyType} RowKey = _table.AddRow();" + nl +
         ar+ nl +
         "      _table.Save();" + nl +
         "    }" + nl +
        $"    public void Update({className} item)" + "{" + nl +
-        "      int RowKey = item.Id;" + nl + 
+       $"      {sKeyType} RowKey = item.Id;" + nl + 
         ar + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
        $"    public void Delete({className} item)" + "{" + nl +
-        "      int RowKey = item.Id;" + nl +
+       $"      {sKeyType} RowKey = item.Id;" + nl +
         "      _table.Rows.Remove(RowKey, out Row? _);" + nl +
         "      _table.Save();" + nl +
         "    }" + nl +
-     //   "      " + nl +
+        "    public void Save(){ _table.Save(); }  " + nl +
 
        "  }" + nl + nl +
 

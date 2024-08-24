@@ -167,17 +167,18 @@ namespace AppSmith.Models {
 
     public static int GetMethodTypeFor(this OperationType item, Types types) {
       int ret = 66;
-      string httpMethodType = Enum.GetName(typeof(OperationType), item);
+      string httpMethodType = Enum.GetName(typeof(OperationType), item).ToLower();
       var al = types.GetChildrenItems(65).ToArray<ItemType>();
-      var match = al.First<ItemType>(x => x.Name == httpMethodType);
+      var match = al.First<ItemType>(x => x.Name.ToLower() == httpMethodType);
       if (match != null) {
         ret = match.TypeId;
       }
       return ret;
     }
-    public static string ParseOpenApiOpForMethod(this OpenApiOperation item, OperationType opKey, Types types) {      
-      var methodName = item.OperationId;      
+    public static string ParseOpenApiOpForMethod(this OpenApiOperation item, string pathKey,OperationType opKey, Types types) {            
       int ValueTypeId = opKey.GetMethodTypeFor(types);
+      var fallbackName = types[ValueTypeId].Name+pathKey.ParseFirst("{").ParseLast("/").AsUpperCaseFirstLetter();
+      var methodName = item?.OperationId ?? fallbackName;
       string returnType = "ActionResult";
       string desc = item?.Summary ?? "<NULL>";
       string summary = item?.Description ?? "<NULL>";
