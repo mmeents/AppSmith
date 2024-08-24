@@ -1049,7 +1049,7 @@ namespace AppSmith {
     public void PrepareClass(Item it) {
       if (it == null) return;
       Item parentItem = (it.Parent as Item);
-      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
+      edSQL.Text = it.GenerateTableFromClass(_types);
       edCSharp.Text = it.GenerateClass(_types, true);
       if ((parentItem != null) &&(parentItem.TypeId==(int)TnType.Api) &&(!String.IsNullOrEmpty(parentItem.Code))) {
         edJSONOut.Text = parentItem.Code;

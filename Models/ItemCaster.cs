@@ -150,7 +150,7 @@ namespace AppSmith.Models {
 
     public Item FromChunk(string chunk) {
       var base1 = chunk.AsBase64Decoded().Parse(" ");
-      Id = base1[0].AsInt();
+      Id = base1[0].AsInt();    // index 0
       OwnerId = base1[1].AsInt();
       TypeId = base1[2].AsInt();
       _ItemRank = base1[3].AsInt();
@@ -353,12 +353,16 @@ namespace AppSmith.Models {
     }
 
     public Item LoadChildren(Item item) {
-      var items = GetOwnersItemsAsync(item.Id);
-      if (item.Nodes.Count > 0) item.Nodes.Clear();
-      foreach (Item it in items) {
-        if (!item.Nodes.Contains(it)) item.Nodes.Add(it);
+      try { 
+        var items = GetOwnersItemsAsync(item.Id);
+        if (item.Nodes.Count > 0) item.Nodes.Clear();
+        foreach (Item it in items) {
+          if (!item.Nodes.Contains(it)) item.Nodes.Add(it);
+        }
+        item.Dirty = false;
+      } catch (Exception ex) {
+        _ownerForm.LogMsg($"{DateTime.Now} Error LoadChildren {ex.Message}");
       }
-      item.Dirty = false;
       return item;
     }
 
@@ -551,10 +555,15 @@ namespace AppSmith.Models {
     }
 
     public void RemoveItem(Item item) {
-      if (item == null) return;
-      NestedRemoveItem(item);
-      _package.PackageItems = _items;
-      _ = Task.Run(async () => await _package.SaveAsync().ConfigureAwait(false));
+      try { 
+        if (item == null) return;
+        NestedRemoveItem(item);
+        _package.PackageItems = _items;
+        _ = Task.Run(async () => await _package.SaveAsync().ConfigureAwait(false));
+      } catch (Exception ex) {
+        _ownerForm.LogMsg($"{DateTime.Now} Remove Error {ex.Message}");
+      }
+
     }
 
     public Item GetTablesItem(Item start) { 
