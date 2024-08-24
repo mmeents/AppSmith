@@ -524,16 +524,19 @@ namespace AppSmith {
       try {
         if (_inEditItem.TypeId == (int)TnType.Server && !string.IsNullOrEmpty(_inEditItem.Url)) {
           var OAPIr = await ApiExt.GetOpenApiDocFromSite(_inEditItem.Url);
-          if (OAPIr.Status != OpenApiDocStatus.Error) { 
-            foreach(var warning in OAPIr.Diagnostic.Warnings) { 
-              LogMsg(warning.Message);
-            }
-            var OAPI = OAPIr.Document; 
+          //if (OAPIr.Status != OpenApiDocStatus.Error) { 
+          foreach(var warning in OAPIr.Diagnostic.Warnings) { 
+            LogMsg(warning.Message);
+          }
+          foreach (var warning in OAPIr.Diagnostic.Errors) {
+            LogMsg(warning.Message);
+          }
+          var OAPI = OAPIr.Document; 
             string lastTagName = "";
             Item cont = _inEditItem;
             Item iapi = _inEditItem;          
 
-            iapi = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Api], $"{OAPI.Info.Title}.API"); 
+            iapi = _itemCaster.SaveNewChildItemsFromText(_inEditItem, _types[(int)TnType.Api], $"{OAPI.Info.Title}"); 
             iapi.Code = OAPIr.RawJson;
             SetInProgress(1500);
             foreach (var compName in OAPI.Components.Schemas.Keys) { 
@@ -597,7 +600,7 @@ namespace AppSmith {
 
                     
                     try {
-                      string[] methParts = ops[opKey].ParseOpenApiOpForMethod(opKey,_types).Parse(",");
+                      string[] methParts = ops[opKey].ParseOpenApiOpForMethod(pathKey, opKey,_types).Parse(",");
                       string MethReturnType = methParts[0];
                       string MethodName = methParts[1];                      
                       meth = _itemCaster.SaveNewChildItemsFromText(cont, _types[(int)TnType.Method], MethodName);
@@ -646,10 +649,9 @@ namespace AppSmith {
               }
             }  // for each path
             SetInProgress(9500);
-          } else { // was not a success
-            LogMsg(OAPIr.ErrorMessage);
-          }
+          
         }
+        
       } catch (Exception ex1) { 
         LogMsg(ex1.Message);
       }
@@ -1029,6 +1031,7 @@ namespace AppSmith {
       edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
       edCSharp.Text = it.GenerateApi(_types);
       edJSONOut.Text = it.Code;
+      edMdOut.Text = it.GenerateApiDoc(_types);
     }
     public void PrepareController(Item it) {
       if (it == null) return;
@@ -1039,8 +1042,9 @@ namespace AppSmith {
       if ((parentItem != null) && (parentItem.TypeId == (int)TnType.Api) && ( !String.IsNullOrEmpty(parentItem.Code) )) {
         edJSONOut.Text = parentItem.Code;
       } else { 
-        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";        
       }
+      edMdOut.Text = it.GenerateControllerDoc(_types, false);
     }
     public void PrepareClass(Item it) {
       if (it == null) return;
@@ -1052,6 +1056,7 @@ namespace AppSmith {
       } else {
         edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
       }
+      edMdOut.Text = it.GenerateClassDoc(_types, false);
     }
 
     public void PrepareNullType(Item it) {
@@ -1059,6 +1064,7 @@ namespace AppSmith {
       edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
       edCSharp.Text = $"// {it.Name} C not implemented ";
       edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+      edMdOut.Text = $"{it.Name} MD Doc not implemented yet.";
     }
 
     public void PrepareListTables(Item it) { 
@@ -1069,6 +1075,7 @@ namespace AppSmith {
       }
       edSQL.Text = res.ToString();
       edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+      edMdOut.Text = $"{it.Name} MD Doc not implemented yet.";
     }
     public void PrepareTableType(Item it) {
       if (it == null) return;
@@ -1076,12 +1083,14 @@ namespace AppSmith {
       edSQL.Text = " " + Cs.nl + it.GenerateSqlCreateTable(_types) + Cs.nl + Cs.nl + it.GenerateSQLAddUpdateStoredProc(_types) + it.GetSQLCursor(_types);
       edCSharp.Text = Cs.nl + it.GenerateCSharpRepoLikeClassFromTable(_types, true);
       edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+      edMdOut.Text = $"{it.Name} MD Doc not implemented yet.";
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
       edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
       edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
       edJSONOut.Text = $"{tnProcedure.Name} JSON not implemented yet.";
+      edMdOut.Text = $"{tnProcedure.Name} MD Doc not implemented yet.";
     }
 
     public void PrepareFunctionType(Item tnFunction) {
@@ -1094,8 +1103,16 @@ namespace AppSmith {
     }
 
     private void inputCopyToolStripMenuItem_Click(object sender, EventArgs e) {
-      if (edInput.SelectedText.Length == 0) edInput.SelectAll();
-      Clipboard.SetText(edInput.SelectedText);
+      string copyText = "";
+      switch (tabControl1.SelectedIndex) { 
+        case 0:copyText = (edInput.SelectedText.Length == 0)? edInput.Text : edInput.SelectedText; break;
+        case 1: copyText = (edSQL.SelectedText.Length == 0) ? edSQL.Text : edSQL.SelectedText; break;
+        case 2: copyText = (edCSharp.SelectedText.Length == 0) ? edCSharp.Text : edCSharp.SelectedText; break;
+        case 3: copyText = (edJSONOut.SelectedText.Length == 0) ? edJSONOut.Text : edJSONOut.SelectedText; break;
+        case 4: copyText = (edMdOut.SelectedText.Length == 0) ? edMdOut.Text : edMdOut.SelectedText; break;
+        case 5: copyText = (edLogMsg.SelectedText.Length == 0) ? edLogMsg.Text : edLogMsg.SelectedText; break;
+      }      
+      Clipboard.SetText(copyText);
     }
 
     private void inputPasteToolStripMenuItem_Click(object sender, EventArgs e) {

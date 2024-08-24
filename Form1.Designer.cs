@@ -77,6 +77,8 @@
       this.openStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.closeStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.odMain = new System.Windows.Forms.OpenFileDialog();
+      this.tabPage1 = new System.Windows.Forms.TabPage();
+      this.edMdOut = new FastColoredTextBoxNS.FastColoredTextBox();
       ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
@@ -100,6 +102,8 @@
       this.tpLog.SuspendLayout();
       this.panel1.SuspendLayout();
       this.menuStrip1.SuspendLayout();
+      this.tabPage1.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.edMdOut)).BeginInit();
       this.SuspendLayout();
       // 
       // splitContainer1
@@ -386,6 +390,7 @@
       this.tabControl1.Controls.Add(this.tpSqlOut);
       this.tabControl1.Controls.Add(this.tpCOut);
       this.tabControl1.Controls.Add(this.tpJSONOut);
+      this.tabControl1.Controls.Add(this.tabPage1);
       this.tabControl1.Controls.Add(this.tpLog);
       this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tabControl1.Location = new System.Drawing.Point(0, 0);
@@ -430,6 +435,7 @@
       this.edInput.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edInput.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edInput.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edInput.IsReplaceMode = false;
       this.edInput.Language = FastColoredTextBoxNS.Language.SQL;
       this.edInput.LeftBracket = '(';
@@ -485,11 +491,11 @@
       // tpSqlOut
       // 
       this.tpSqlOut.Controls.Add(this.edSQL);
-      this.tpSqlOut.Location = new System.Drawing.Point(4, 25);
+      this.tpSqlOut.Location = new System.Drawing.Point(4, 29);
       this.tpSqlOut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tpSqlOut.Name = "tpSqlOut";
       this.tpSqlOut.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpSqlOut.Size = new System.Drawing.Size(535, 409);
+      this.tpSqlOut.Size = new System.Drawing.Size(535, 405);
       this.tpSqlOut.TabIndex = 1;
       this.tpSqlOut.Text = "Sql Out";
       this.tpSqlOut.UseVisualStyleBackColor = true;
@@ -519,6 +525,7 @@
       this.edSQL.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edSQL.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edSQL.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edSQL.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edSQL.IsReplaceMode = false;
       this.edSQL.Language = FastColoredTextBoxNS.Language.SQL;
       this.edSQL.LeftBracket = '(';
@@ -528,7 +535,7 @@
       this.edSQL.RightBracket = ')';
       this.edSQL.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
       this.edSQL.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edSQL.ServiceColors")));
-      this.edSQL.Size = new System.Drawing.Size(527, 403);
+      this.edSQL.Size = new System.Drawing.Size(527, 399);
       this.edSQL.TabIndex = 1;
       this.edSQL.Zoom = 100;
       // 
@@ -550,9 +557,9 @@
       // tpCOut
       // 
       this.tpCOut.Controls.Add(this.edCSharp);
-      this.tpCOut.Location = new System.Drawing.Point(4, 25);
+      this.tpCOut.Location = new System.Drawing.Point(4, 29);
       this.tpCOut.Name = "tpCOut";
-      this.tpCOut.Size = new System.Drawing.Size(535, 409);
+      this.tpCOut.Size = new System.Drawing.Size(535, 405);
       this.tpCOut.TabIndex = 2;
       this.tpCOut.Text = "C# Out";
       this.tpCOut.UseVisualStyleBackColor = true;
@@ -572,7 +579,7 @@
         '\''};
       this.edCSharp.AutoIndentCharsPatterns = "\r\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\r\n^\\s*(case|default)\\s*[^:]" +
     "*(?<range>:)\\s*(?<range>[^;]+);\r\n";
-      this.edCSharp.AutoScrollMinSize = new System.Drawing.Size(2, 18);
+      this.edCSharp.AutoScrollMinSize = new System.Drawing.Size(31, 18);
       this.edCSharp.AutoSize = true;
       this.edCSharp.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.edCSharp.BackBrush = null;
@@ -583,6 +590,7 @@
       this.edCSharp.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edCSharp.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edCSharp.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edCSharp.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edCSharp.IsReplaceMode = false;
       this.edCSharp.Language = FastColoredTextBoxNS.Language.CSharp;
       this.edCSharp.LeftBracket = '(';
@@ -594,16 +602,16 @@
       this.edCSharp.RightBracket2 = '}';
       this.edCSharp.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
       this.edCSharp.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edCSharp.ServiceColors")));
-      this.edCSharp.Size = new System.Drawing.Size(535, 409);
+      this.edCSharp.Size = new System.Drawing.Size(535, 405);
       this.edCSharp.TabIndex = 1;
       this.edCSharp.Zoom = 100;
       // 
       // tpJSONOut
       // 
       this.tpJSONOut.Controls.Add(this.edJSONOut);
-      this.tpJSONOut.Location = new System.Drawing.Point(4, 25);
+      this.tpJSONOut.Location = new System.Drawing.Point(4, 29);
       this.tpJSONOut.Name = "tpJSONOut";
-      this.tpJSONOut.Size = new System.Drawing.Size(535, 409);
+      this.tpJSONOut.Size = new System.Drawing.Size(535, 405);
       this.tpJSONOut.TabIndex = 4;
       this.tpJSONOut.Text = "JSON Out";
       this.tpJSONOut.UseVisualStyleBackColor = true;
@@ -622,7 +630,7 @@
         '\'',
         '\''};
       this.edJSONOut.AutoIndentCharsPatterns = "";
-      this.edJSONOut.AutoScrollMinSize = new System.Drawing.Size(2, 18);
+      this.edJSONOut.AutoScrollMinSize = new System.Drawing.Size(31, 18);
       this.edJSONOut.AutoSize = true;
       this.edJSONOut.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.edJSONOut.BackBrush = null;
@@ -633,7 +641,6 @@
       this.edJSONOut.Cursor = System.Windows.Forms.Cursors.IBeam;
       this.edJSONOut.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
       this.edJSONOut.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.edJSONOut.Font = new System.Drawing.Font("Courier New", 9.75F);
       this.edJSONOut.IsReplaceMode = false;
       this.edJSONOut.Language = FastColoredTextBoxNS.Language.SQL;
       this.edJSONOut.LeftBracket = '(';
@@ -643,18 +650,18 @@
       this.edJSONOut.RightBracket = ')';
       this.edJSONOut.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
       this.edJSONOut.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edJSONOut.ServiceColors")));
-      this.edJSONOut.Size = new System.Drawing.Size(535, 409);
+      this.edJSONOut.Size = new System.Drawing.Size(535, 405);
       this.edJSONOut.TabIndex = 3;
       this.edJSONOut.Zoom = 100;
       // 
       // tpLog
       // 
       this.tpLog.Controls.Add(this.edLogMsg);
-      this.tpLog.Location = new System.Drawing.Point(4, 25);
+      this.tpLog.Location = new System.Drawing.Point(4, 29);
       this.tpLog.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.tpLog.Name = "tpLog";
       this.tpLog.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-      this.tpLog.Size = new System.Drawing.Size(535, 409);
+      this.tpLog.Size = new System.Drawing.Size(535, 405);
       this.tpLog.TabIndex = 0;
       this.tpLog.Text = "Log";
       this.tpLog.UseVisualStyleBackColor = true;
@@ -668,7 +675,7 @@
       this.edLogMsg.Multiline = true;
       this.edLogMsg.Name = "edLogMsg";
       this.edLogMsg.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-      this.edLogMsg.Size = new System.Drawing.Size(527, 403);
+      this.edLogMsg.Size = new System.Drawing.Size(527, 399);
       this.edLogMsg.TabIndex = 3;
       // 
       // panel1
@@ -679,7 +686,7 @@
       this.panel1.Controls.Add(this.lbFocusedItem);
       this.panel1.Controls.Add(this.pbMain);
       this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-      this.panel1.Location = new System.Drawing.Point(0, 30);
+      this.panel1.Location = new System.Drawing.Point(0, 28);
       this.panel1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
       this.panel1.Name = "panel1";
       this.panel1.Size = new System.Drawing.Size(818, 39);
@@ -747,7 +754,7 @@
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.Name = "menuStrip1";
       this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
-      this.menuStrip1.Size = new System.Drawing.Size(818, 30);
+      this.menuStrip1.Size = new System.Drawing.Size(818, 28);
       this.menuStrip1.TabIndex = 2;
       this.menuStrip1.Text = "menuStrip1";
       // 
@@ -757,7 +764,7 @@
             this.openStripMenuItem,
             this.closeStripMenuItem});
       this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-      this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
+      this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
       this.fileToolStripMenuItem.Text = "File";
       this.fileToolStripMenuItem.DropDownOpening += new System.EventHandler(this.fileToolStripMenuItem_DropDownOpening);
       // 
@@ -781,6 +788,57 @@
       this.odMain.DefaultExt = "asm";
       this.odMain.Filter = "AppSmith4Model|*.as4m";
       this.odMain.Title = "Open Archive";
+      // 
+      // tabPage1
+      // 
+      this.tabPage1.Controls.Add(this.edMdOut);
+      this.tabPage1.Location = new System.Drawing.Point(4, 29);
+      this.tabPage1.Name = "tabPage1";
+      this.tabPage1.Size = new System.Drawing.Size(535, 405);
+      this.tabPage1.TabIndex = 5;
+      this.tabPage1.Text = "MD Out";
+      this.tabPage1.UseVisualStyleBackColor = true;
+      // 
+      // edMdOut
+      // 
+      this.edMdOut.AutoCompleteBracketsList = new char[] {
+        '(',
+        ')',
+        '{',
+        '}',
+        '[',
+        ']',
+        '\"',
+        '\"',
+        '\'',
+        '\''};
+      this.edMdOut.AutoIndentCharsPatterns = "\r\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\r\n^\\s*(case|default)\\s*[^:]" +
+    "*(?<range>:)\\s*(?<range>[^;]+);\r\n";
+      this.edMdOut.AutoScrollMinSize = new System.Drawing.Size(31, 18);
+      this.edMdOut.AutoSize = true;
+      this.edMdOut.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.edMdOut.BackBrush = null;
+      this.edMdOut.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
+      this.edMdOut.CharHeight = 18;
+      this.edMdOut.CharWidth = 10;
+      this.edMdOut.ContextMenuStrip = this.msOutput;
+      this.edMdOut.Cursor = System.Windows.Forms.Cursors.IBeam;
+      this.edMdOut.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+      this.edMdOut.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.edMdOut.IsReplaceMode = false;
+      this.edMdOut.Language = FastColoredTextBoxNS.Language.HTML;
+      this.edMdOut.LeftBracket = '(';
+      this.edMdOut.LeftBracket2 = '{';
+      this.edMdOut.Location = new System.Drawing.Point(0, 0);
+      this.edMdOut.Name = "edMdOut";
+      this.edMdOut.Paddings = new System.Windows.Forms.Padding(0);
+      this.edMdOut.RightBracket = ')';
+      this.edMdOut.RightBracket2 = '}';
+      this.edMdOut.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+      this.edMdOut.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("edMdOut.ServiceColors")));
+      this.edMdOut.Size = new System.Drawing.Size(535, 405);
+      this.edMdOut.TabIndex = 2;
+      this.edMdOut.Zoom = 100;
       // 
       // Form1
       // 
@@ -831,6 +889,9 @@
       this.panel1.PerformLayout();
       this.menuStrip1.ResumeLayout(false);
       this.menuStrip1.PerformLayout();
+      this.tabPage1.ResumeLayout(false);
+      this.tabPage1.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.edMdOut)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -890,6 +951,8 @@
     private System.Windows.Forms.TabPage tpJSONOut;
     private FastColoredTextBoxNS.FastColoredTextBox edJSONOut;
     private System.Windows.Forms.Button btnStop;
+    private System.Windows.Forms.TabPage tabPage1;
+    private FastColoredTextBoxNS.FastColoredTextBox edMdOut;
   }
 }
 
