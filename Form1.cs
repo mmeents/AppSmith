@@ -228,6 +228,8 @@ namespace AppSmith {
       lbFocusedItem.Text = "Recent:";
       edSQL.Text = "";
       edCSharp.Text = "";
+      edMdOut.Text = "";
+      edJSONOut.Text = "";
       _inEditItem = null;
     }
 
@@ -449,21 +451,20 @@ namespace AppSmith {
     }
 
     private void deleteToolStripMenuItem_Click(object sender, EventArgs e) {
-      if (_inEditItem == null) return;
-      _inReorder = true;
+      if (_inEditItem == null) return;      
       try {
         Item item = _inEditItem;
         Item ParentItem = (Item)item.Parent;
         SetInProgress(9500);
         if (ParentItem != null) {
-          ParentItem.Nodes.Remove(item);
           tvBuilder.SelectedNode = ParentItem;
+          ParentItem.Nodes.Remove(item);          
         }
         _itemCaster.RemoveItem(item);
+        tvBuilder_AfterSelect(sender, new TreeViewEventArgs(ParentItem));
       } finally {
-        SetInProgress(0);
-        _inReorder = false;
-      }
+        SetInProgress(0);        
+      }      
     }
 
     private void controllerToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -619,7 +620,8 @@ namespace AppSmith {
                             var mpm = p2.Parse(",");
                             var mpr = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"{mpm[0]}");                            
                             mpr.CSharpTypeId = mpm[1].AsInt();                            
-                            mpr.BaseClass = mpm[2];                            
+                            mpr.BaseClass = mpm[2];  
+                            mpr.Code = mpm[3] + "," + mpm[4];
                           }
                         }                        
                       }  // for each op param
@@ -1049,7 +1051,7 @@ namespace AppSmith {
     public void PrepareClass(Item it) {
       if (it == null) return;
       Item parentItem = (it.Parent as Item);
-      edSQL.Text = $"-- {it.Name} Sql not implemented yet.";
+      edSQL.Text = it.GenerateTableFromClass(_types);
       edCSharp.Text = it.GenerateClass(_types, true);
       if ((parentItem != null) &&(parentItem.TypeId==(int)TnType.Api) &&(!String.IsNullOrEmpty(parentItem.Code))) {
         edJSONOut.Text = parentItem.Code;
@@ -1103,28 +1105,36 @@ namespace AppSmith {
     }
 
     private void inputCopyToolStripMenuItem_Click(object sender, EventArgs e) {
-      string copyText = "";
-      switch (tabControl1.SelectedIndex) { 
-        case 0:copyText = (edInput.SelectedText.Length == 0)? edInput.Text : edInput.SelectedText; break;
-        case 1: copyText = (edSQL.SelectedText.Length == 0) ? edSQL.Text : edSQL.SelectedText; break;
-        case 2: copyText = (edCSharp.SelectedText.Length == 0) ? edCSharp.Text : edCSharp.SelectedText; break;
-        case 3: copyText = (edJSONOut.SelectedText.Length == 0) ? edJSONOut.Text : edJSONOut.SelectedText; break;
-        case 4: copyText = (edMdOut.SelectedText.Length == 0) ? edMdOut.Text : edMdOut.SelectedText; break;
-        case 5: copyText = (edLogMsg.SelectedText.Length == 0) ? edLogMsg.Text : edLogMsg.SelectedText; break;
-      }      
-      Clipboard.SetText(copyText);
+      try { 
+        string copyText = "";
+        switch (tabControl1.SelectedIndex) { 
+          case 0:copyText = (edInput.SelectedText.Length == 0)? edInput.Text : edInput.SelectedText; break;
+          case 1: copyText = (edSQL.SelectedText.Length == 0) ? edSQL.Text : edSQL.SelectedText; break;
+          case 2: copyText = (edCSharp.SelectedText.Length == 0) ? edCSharp.Text : edCSharp.SelectedText; break;
+          case 3: copyText = (edJSONOut.SelectedText.Length == 0) ? edJSONOut.Text : edJSONOut.SelectedText; break;
+          case 4: copyText = (edMdOut.SelectedText.Length == 0) ? edMdOut.Text : edMdOut.SelectedText; break;
+          case 5: copyText = (edLogMsg.SelectedText.Length == 0) ? edLogMsg.Text : edLogMsg.SelectedText; break;
+        }      
+        Clipboard.SetText(copyText);
+      } catch (Exception ex) {
+        LogMsg($"{DateTime.Now} Error {ex.Message}");
+      }
     }
 
     private void inputPasteToolStripMenuItem_Click(object sender, EventArgs e) {
-      string x = Clipboard.GetText();
-      string[] lines = x.Parse(Environment.NewLine);
-      StringBuilder sb = new StringBuilder();
-      foreach (string line in lines) {
-        if (line.Length > 0) sb.AppendLine(line);
+      try { 
+        string x = Clipboard.GetText();
+        string[] lines = x.Parse(Environment.NewLine);
+        StringBuilder sb = new StringBuilder();
+        foreach (string line in lines) {
+          if (line.Length > 0) sb.AppendLine(line);
+        }
+        if (edInput.SelectedText.Length > 0) {
+          edInput.SelectedText = sb.ToString();
+        } else edInput.Text = edInput.Text + sb.ToString();
+      } catch (Exception ex) {
+        LogMsg($"{DateTime.Now} Error {ex.Message}");
       }
-      if (edInput.SelectedText.Length > 0) {
-        edInput.SelectedText = sb.ToString();
-      } else edInput.Text = edInput.Text + sb.ToString();
     }
     private void inputParseToolStripMenuItem_Click(object sender, EventArgs e) {
       string sInput = edInput.Text;
@@ -1132,12 +1142,16 @@ namespace AppSmith {
     }
 
     private void CopyOutputMenuItem_Click(object sender, EventArgs e) {
-      if (tabControl1.SelectedTab == tpSqlOut) {
-        if (edSQL.SelectedText.Length == 0) edSQL.SelectAll();
-        Clipboard.SetText(edSQL.SelectedText);
-      } else if (tabControl1.SelectedTab == tpCOut) {
-        if (edCSharp.SelectedText.Length == 0) edCSharp.SelectAll();
-        Clipboard.SetText(edCSharp.SelectedText);
+      try { 
+        if (tabControl1.SelectedTab == tpSqlOut) {
+          if (edSQL.SelectedText.Length == 0) edSQL.SelectAll();
+          Clipboard.SetText(edSQL.SelectedText);
+        } else if (tabControl1.SelectedTab == tpCOut) {
+          if (edCSharp.SelectedText.Length == 0) edCSharp.SelectAll();
+          Clipboard.SetText(edCSharp.SelectedText);
+        }
+      } catch (Exception ex) {
+        LogMsg($"{DateTime.Now} Error {ex.Message}");
       }
     }
 

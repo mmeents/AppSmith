@@ -267,6 +267,25 @@ namespace AppSmith.Models {
       return result;
     }
 
+    public static string GetSQLTypeFromCType(string cType) {
+      string w = cType.ToLower().ParseFirst(" ()");
+      string result = "varchar(200)";
+      if (w == "string") result = "varchar(100)";      
+      else if (w == "int") result = "int";
+      else if (w == "int32") result = "int";
+      else if (w == "long") result = "bigint";
+      else if (w == "int64") result = "bigint";
+      else if (w == "byte") result = "binary";
+      else if (w == "bool") result = "bit";
+      else if (w == "boolean") result = "bit";
+      else if (w == "datetime") result = "datetime";
+      else if (w == "decimal") result = "decimal";
+      else if (w == "float") result = "float";
+      else if (w == "image") result = "Image";
+      else if (w == "short") result = "smallint";                        
+      return result;
+    }
+
     public static string GetColumnTypeFromSQLType(string sqlType) {
       string w = sqlType.ToLower().ParseFirst(" ()");
       string result = "";
@@ -574,7 +593,7 @@ namespace AppSmith.Models {
             } else if (paramAt == "FromHeader") {
               fromH = fromH + (fromH != "" ? Environment.NewLine : "") + $"        request.AddHeader(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()});";
             } else if (paramAt == "FromBody") {
-              fromB = fromB +(fromB!=""?Environment.NewLine:"")+ $"        request.AddJsonBody<{paramT}>({paramN.AsLowerCaseFirstLetter()});";            
+              fromB = fromB + (fromB != "" ? Environment.NewLine:"") +   $"        request.AddJsonBody<{paramT}>({paramN.AsLowerCaseFirstLetter()});";            
             } else if (paramAt == "FromForm") {
               fromF = fromF + (fromF != "" ? Environment.NewLine : "") + $"        request.AddParameter(\"{paramN.AsLowerCaseFirstLetter()}\", {paramN.AsLowerCaseFirstLetter()}, ParameterType.GetOrPost);";
             } else {
@@ -703,11 +722,25 @@ namespace AppSmith.Models {
       }
       string ParamName = tnMethodParam.Name;
       string ParamAttrb = "";
+      string desc = "";
+      string defa = "";
+      if (tnMethodParam.Code != "") { 
+        var code = tnMethodParam.Code.Parse(",");
+        desc = code[0].AsBase64Decoded();
+        desc = (desc == "<NULL>" ? "" : desc);
+        defa = (defa == "<NULL>" ? "" : defa);
+      }
       if (ParamName.Parse(" ").Length > 1) {
         ParamAttrb = ParamName.ParseFirst(" []").Substring(4);
         ParamName = ParamName.ParseLast(" ").AsUpperCaseFirstLetter();        
       }
       res.AppendLine($"        - {ParamName} ({paramType})" +(String.IsNullOrEmpty( ParamAttrb)?"" : $" from {ParamAttrb}"));
+      if (desc != "") {
+        res.AppendLine($"          - Description: {desc}");
+      }
+      if (defa != "") {
+        res.AppendLine($"          - Default: {defa}");
+      }
       return res.ToString();
     }
     public static string GenerateMethodDoc(this Item tnMethod, Types types) {
@@ -779,7 +812,17 @@ namespace AppSmith.Models {
       string msgParams = "";
       foreach (Item tnParam in tnMethod.Nodes) {
         if (tnParam.TypeId == (int)TnType.MethodParam) {
-          msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types, false) : ", "+tnParam.GenerateMethodParam(types, false));
+          if (msgParams != "") {
+            msgParams += "," + Cs.nl;
+          }
+          if (!string.IsNullOrEmpty(tnParam.Code)) { 
+            var code = tnParam.Code.Parse(",");
+            var paramDesc = code[0].AsBase64Decoded();
+            paramDesc = (paramDesc == "<NULL>") ? "" : paramDesc;          
+            msgParams += (paramDesc == "")? "" : Cs.nl + "          [Description(\"" + paramDesc+"\")]";
+          }
+          msgParams += ((msgParams!="") ? Cs.nl : "");  
+          msgParams += "          "+tnParam.GenerateMethodParam(types, false);
         }
       }
       if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 
@@ -789,6 +832,37 @@ namespace AppSmith.Models {
       res.AppendLine( "          return Ok();");
       res.AppendLine( "        }");
       return res.ToString(); 
+    }
+
+    public static string GenerateTableFromClass(this Item tnClass, Types types) {
+      string r = $"{Cs.nl}Create Table dbo.{tnClass.Name}({Cs.nl}";
+      bool hasId = false; bool ftt = true;
+      string identityColName = "";
+
+      foreach (Item tn in tnClass.Nodes) {
+        string src = tn?.Code ?? "";
+        bool isIdentity = (ftt) && (tn.Name.ToLower() == "id");
+        if (isIdentity && !hasId) hasId = true;
+        if (isIdentity) {
+          identityColName = tn.Name;
+        }
+        bool isNotNull = true;
+        var sqlType = Cs.GetSQLTypeFromCType(tn.BaseClass)+" ";
+        if (tn.Name.ToLower() == "id") {
+          r += (!ftt ? "," + Cs.nl : "") +
+            "    " + tn.Name + " " + sqlType + tn.SQLTypeSize + " NOT NULL IDENTITY(1,1)";
+          hasId = true;
+        } else {
+          r += (!ftt ? "," + Cs.nl : "") +
+            "    " + tn.Name + " " + sqlType + tn.SQLTypeSize + (isNotNull ? " NOT" : "") + " NULL" + (isIdentity ? " IDENTITY(1,1)" : "");
+        }
+        if (ftt) ftt = false;
+      }
+
+      if (hasId) {
+        r += "," + Cs.nl + $"    CONSTRAINT [PK_{tnClass.Name.RemoveChar('.')}_{identityColName}] PRIMARY KEY CLUSTERED ([{identityColName}])";
+      }
+      return r + $"{Cs.nl})";
     }
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {
       string r = $"-- a table create {Cs.nl}Create Table {tnTable.Name}({Cs.nl}";
