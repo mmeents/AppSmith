@@ -620,7 +620,8 @@ namespace AppSmith {
                             var mpm = p2.Parse(",");
                             var mpr = _itemCaster.SaveNewChildItemsFromText(meth, _types[(int)TnType.MethodParam], $"{mpm[0]}");                            
                             mpr.CSharpTypeId = mpm[1].AsInt();                            
-                            mpr.BaseClass = mpm[2];                            
+                            mpr.BaseClass = mpm[2];  
+                            mpr.Code = mpm[3] + "," + mpm[4];
                           }
                         }                        
                       }  // for each op param

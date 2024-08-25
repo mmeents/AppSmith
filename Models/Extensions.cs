@@ -722,11 +722,25 @@ namespace AppSmith.Models {
       }
       string ParamName = tnMethodParam.Name;
       string ParamAttrb = "";
+      string desc = "";
+      string defa = "";
+      if (tnMethodParam.Code != "") { 
+        var code = tnMethodParam.Code.Parse(",");
+        desc = code[0].AsBase64Decoded();
+        desc = (desc == "<NULL>" ? "" : desc);
+        defa = (defa == "<NULL>" ? "" : defa);
+      }
       if (ParamName.Parse(" ").Length > 1) {
         ParamAttrb = ParamName.ParseFirst(" []").Substring(4);
         ParamName = ParamName.ParseLast(" ").AsUpperCaseFirstLetter();        
       }
       res.AppendLine($"        - {ParamName} ({paramType})" +(String.IsNullOrEmpty( ParamAttrb)?"" : $" from {ParamAttrb}"));
+      if (desc != "") {
+        res.AppendLine($"          - Description: {desc}");
+      }
+      if (defa != "") {
+        res.AppendLine($"          - Default: {defa}");
+      }
       return res.ToString();
     }
     public static string GenerateMethodDoc(this Item tnMethod, Types types) {
@@ -798,7 +812,17 @@ namespace AppSmith.Models {
       string msgParams = "";
       foreach (Item tnParam in tnMethod.Nodes) {
         if (tnParam.TypeId == (int)TnType.MethodParam) {
-          msgParams = msgParams + ((msgParams=="") ? tnParam.GenerateMethodParam(types, false) : ", "+tnParam.GenerateMethodParam(types, false));
+          if (msgParams != "") {
+            msgParams += "," + Cs.nl;
+          }
+          if (!string.IsNullOrEmpty(tnParam.Code)) { 
+            var code = tnParam.Code.Parse(",");
+            var paramDesc = code[0].AsBase64Decoded();
+            paramDesc = (paramDesc == "<NULL>") ? "" : paramDesc;          
+            msgParams += (paramDesc == "")? "" : Cs.nl + "          [Description(\"" + paramDesc+"\")]";
+          }
+          msgParams += ((msgParams!="") ? Cs.nl : "");  
+          msgParams += "          "+tnParam.GenerateMethodParam(types, false);
         }
       }
       if (bt.Trim() == tnMethod.Name.Trim()) { // in case of constructor, method name and type are same. 

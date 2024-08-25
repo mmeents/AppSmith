@@ -106,9 +106,11 @@ namespace AppSmith.Models {
       var paramContent = parameter.Content.Values.FirstOrDefault();
       var paramSchemaRef = paramContent?.Schema?.Reference?.Id??"";
       var AnItemType = paramContent?.Schema?.Items?.Type ?? "";
+      var aDefault = paramContent?.Schema?.Items?.Default?.AsString() ?? "<NULL>";
       string ParamType = String.IsNullOrEmpty( paramSchemaType ) ? 
         String.IsNullOrEmpty(paramSchemaRef) ? null : paramSchemaRef
         : paramSchemaType;
+      var desc = parameter?.Description ?? "<NULL>";
       if (ParamType == "integer") { 
         string fmt = paramContent?.Schema?.Format ?? "";
         if (!String.IsNullOrEmpty(fmt)) { 
@@ -120,7 +122,7 @@ namespace AppSmith.Models {
         ParamType = paramName.ParseLast(" ").AsUpperCaseFirstLetter()+"[]";
       }
       int mpTypeId = ParamType.GetParamTypefor(types);
-      ret.MethodParams.Add($"{paramName},{mpTypeId},{ParamType}");
+      ret.MethodParams.Add($"{paramName},{mpTypeId},{ParamType},{desc.AsBase64Encoded()},{aDefault.AsBase64Encoded()}");
       return ret;
     }
 
