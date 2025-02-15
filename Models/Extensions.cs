@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
+using System.Security.Permissions;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -865,7 +866,7 @@ namespace AppSmith.Models {
       return r + $"{Cs.nl})";
     }
     public static string GenerateSqlCreateTable(this Item tnTable, Types types) {
-      string r = $"-- a table create {Cs.nl}Create Table {tnTable.Name}({Cs.nl}";
+      string r = $"Create Table {tnTable.Name}({Cs.nl}";
       bool hasId = false; bool ftt = true;
       string identityColName = "";
       foreach (Item tn in tnTable.Nodes) {
@@ -1040,6 +1041,25 @@ namespace AppSmith.Models {
       return "--  the call to execute " + Cs.nl
         + GetDeclareSQLParam(tnStProc) + Cs.nl
         + $"Exec {tnStProc.Name} {tnStProc.GetSQLInsertListAsSQLParam(true)}";
+    }
+
+    public static string GetAsJSONObject(this Item tn, Types types) { 
+      StringBuilder sb = new StringBuilder();
+      sb.AppendLine($"{tn.Name} : {{");
+      string childName = "";
+      foreach(Item tn0 in tn.Nodes) { 
+        string delim = childName == "" ? "" : ",";
+        childName = tn0.Name;
+        if( tn0.SQLTypeId > 0) { 
+          string tnType = Cs.SQLDefNullValueSQL( types[tn0.SQLTypeId].Name + tn0.SQLTypeSize);
+          sb.AppendLine($"  {delim}{childName}: {tnType}");
+        } else if (tn0.CSharpTypeId > 0) { 
+          string tnType = Cs.SQLDefNullValueCSharp(types[tn0.CSharpTypeId].Name );
+          sb.AppendLine($"  {delim}{childName}: {tnType}");
+        }
+      }
+      sb.AppendLine("}");
+      return sb.ToString();
     }
 
     public static string GetCSharpColAsProps(this Item cn, Types types) {
