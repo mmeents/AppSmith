@@ -34,8 +34,7 @@ namespace AppSmith {
     private Item _inEditItem = null;
     private bool _inReorder = false;
     public Form1() {
-      InitializeComponent();
-      LogMsg("Hello world");
+      InitializeComponent();      
       _types = new Types();
       _types.Load();
       _defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\PrompterFiles";
@@ -1044,7 +1043,7 @@ namespace AppSmith {
       if ((parentItem != null) && (parentItem.TypeId == (int)TnType.Api) && ( !String.IsNullOrEmpty(parentItem.Code) )) {
         edJSONOut.Text = parentItem.Code;
       } else { 
-        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";        
+        edJSONOut.Text = it.GetAsJSONObject(_types);        
       }
       edMdOut.Text = it.GenerateControllerDoc(_types, false);
     }
@@ -1056,7 +1055,7 @@ namespace AppSmith {
       if ((parentItem != null) &&(parentItem.TypeId==(int)TnType.Api) &&(!String.IsNullOrEmpty(parentItem.Code))) {
         edJSONOut.Text = parentItem.Code;
       } else {
-        edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+        edJSONOut.Text = it.GetAsJSONObject(_types);
       }
       edMdOut.Text = it.GenerateClassDoc(_types, false);
     }
@@ -1084,14 +1083,14 @@ namespace AppSmith {
 
       edSQL.Text = " " + Cs.nl + it.GenerateSqlCreateTable(_types) + Cs.nl + Cs.nl + it.GenerateSQLAddUpdateStoredProc(_types) + it.GetSQLCursor(_types);
       edCSharp.Text = Cs.nl + it.GenerateCSharpRepoLikeClassFromTable(_types, true);
-      edJSONOut.Text = $"{it.Name} JSON not implemented yet.";
+      edJSONOut.Text = it.GetAsJSONObject(_types);
       edMdOut.Text = $"{it.Name} MD Doc not implemented yet.";
     }
 
     public void PrepareProcedureType(Item tnProcedure) {
       edSQL.Text = tnProcedure.GenerateSQLStoredProc(_types);
       edCSharp.Text = tnProcedure.GenerateCSharpExecStoredProc(_types);
-      edJSONOut.Text = $"{tnProcedure.Name} JSON not implemented yet.";
+      edJSONOut.Text = tnProcedure.GetAsJSONObject(_types);
       edMdOut.Text = $"{tnProcedure.Name} MD Doc not implemented yet.";
     }
 

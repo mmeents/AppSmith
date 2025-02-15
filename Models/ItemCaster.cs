@@ -274,7 +274,7 @@ namespace AppSmith.Models {
     public Items() : base() { }
     public virtual Boolean Contains(int id) {
       try {
-        return !(base[id] is null);
+        return base.ContainsKey(id);
       } catch {
         return false;
       }
