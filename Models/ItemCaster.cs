@@ -270,6 +270,34 @@ namespace AppSmith.Models {
 
   }
 
+  public static class ItemExt{
+    public static string AsCSharpType(this Item item, Types types) {
+
+      string theType = "";
+      if (item == null) return theType;
+      if (item.CSharpTypeId == 0) {
+        if (item.SQLTypeId == 0) {
+          if (item.BaseClass.Length > 0) {
+            theType = item.BaseClass;
+          } else {
+            theType = "void";
+          }          
+        } else {
+          theType = Cs.GetCTypeFromSQLType(types[item.SQLTypeId].Name + item.SQLTypeSize);          
+        }
+      } else {
+        theType = types[item.SQLTypeId].Name;
+      }
+
+      return theType;
+    }
+
+    public static string AsSafeName(this Item item) {
+      if (item == null) return "";
+      return item.Name.Replace(" ", "_").Replace(".", "_").Replace("-", "_");
+    }
+  }
+
   public class Items : ConcurrentDictionary<int, Item> {
     public Items() : base() { }
     public virtual Boolean Contains(int id) {

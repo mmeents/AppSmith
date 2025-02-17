@@ -14,6 +14,8 @@ using System.Configuration;
 using PropertyGridEx;
 using Microsoft.OpenApi.Models;
 using System.Security.AccessControl;
+using System.Security.Policy;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace AppSmith {
 
@@ -33,7 +35,7 @@ namespace AppSmith {
     private ItemCaster _itemCaster;
     private Item _inEditItem = null;
     private bool _inReorder = false;
-    public Form1() {
+    public Form1() {      
       InitializeComponent();      
       _types = new Types();
       _types.Load();
@@ -155,7 +157,10 @@ namespace AppSmith {
         comboBox1.Items.Clear();
         comboBox1.Items.AddRange(smrul.Parse(Environment.NewLine));
         comboBox1.SelectedIndex = 0;        
-      }      
+      }
+      this.Invoke((Action)(async () => {
+        await wbOut.EnsureCoreWebView2Async().ConfigureAwait(false);
+      }));
     }
     #endregion
     #region Main Menu opening and handlers
@@ -230,6 +235,8 @@ namespace AppSmith {
       edMdOut.Text = "";
       edJSONOut.Text = "";
       _inEditItem = null;
+      wbOut.CoreWebView2.NavigateToString("Open a file and select something in the tree.");
+      tabControl1.SelectedIndex = 0;
     }
 
     private void btnOpenClose_Click(object sender, EventArgs e) {
@@ -1026,6 +1033,10 @@ namespace AppSmith {
         //  case (int)TnType.Function: PrepareFunctionType(it); break;
         default: PrepareNullType(lit); break;
       }
+      
+        wbOut.CoreWebView2.NavigateToString(GetMermaidForm(it));
+      
+      
     }
     public void PrepareApi(Item it) { 
       if (it == null) return;
@@ -1097,6 +1108,105 @@ namespace AppSmith {
     public void PrepareFunctionType(Item tnFunction) {
     //  edSQL.Text = tnFunction.GenerateSQLFunction(_types);
     //  edCSharp.Text = "// C not impemented";
+    }
+
+    public string PrepareDiagramScript(Item it, int diagramType) {
+      var lit = it;
+      if (lit == null) return "";
+      string ret = "";
+      switch (lit.TypeId) {
+        case (int)TnType.Server:  
+          ret = it.GenerateServerFlowchartDiagram(_types);
+          break;
+        case (int)TnType.Database:
+          ret = it.GenerateDatabaseFlowchartDiagram(_types);
+          break;
+        case (int)TnType.Tables:
+          ret = it.GenerateTablesErDiagram(_types);
+          break;
+        case (int)TnType.Table:
+          ret = it.GenerateTableErDiagram(_types, false);
+          break;
+        case (int)TnType.TableColumn:
+          Item parentTable = (Item)it?.Parent ?? null;
+          if (parentTable == null) return "";
+          ret = parentTable.GenerateTableErDiagram(_types, false);
+          break;
+        //case (int)TnType.Procedure: break;
+        case (int)TnType.Api:
+          ret = it.GenerateApiFlowchartDiagram(_types);
+          break;
+        case (int)TnType.Controller:
+          ret = it.GenerateControllerErDiagram(_types, false);
+          break;        
+        case (int)TnType.Class:
+          ret = it.GenerateClassErDiagram(_types, false);
+          break;
+        case (int)TnType.Method:
+          Item parent = (Item)it?.Parent ?? null;
+          if (parent == null) return "";  
+          if (parent.TypeId == (int)TnType.Controller) {
+            ret = parent.GenerateControllerErDiagram(_types, false);
+          } else {
+            ret = parent.GenerateClassErDiagram(_types, false);            
+          }
+          break;
+        case (int)TnType.Property:
+          Item parentProp = (Item)it?.Parent ?? null;
+          if (parentProp == null) return "";
+          if (parentProp.TypeId == (int)TnType.Controller) {
+            ret = parentProp.GenerateControllerErDiagram(_types, false);
+          } else {
+            ret = parentProp.GenerateClassErDiagram(_types, false);
+          }
+          break;
+        default:  
+          ret = it.GenerateDefaultDiagram(_types);
+          break;
+      }
+      return ret;      
+    }
+
+    private string GetMermaidForm(Item it) {
+      StringBuilder sb = new StringBuilder();
+      var sit = "";
+      var mermaidScript = PrepareDiagramScript(it, 1);
+      sb.AppendLine("<!DOCTYPE html>\r\n<html lang=\"en\">");
+      sb.AppendLine("<head>\r\n  <meta charset=\"UTF-8\"/>");
+      sb.AppendLine($"<title>{sit}</title>");
+      sb.AppendLine("<script type=\"module\">");
+      sb.AppendLine("  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';");
+      sb.AppendLine("  mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', theme: 'base' });");
+      sb.AppendLine("  document.addEventListener(\"DOMContentLoaded\", () => { mermaid.init(undefined, document.querySelectorAll(\".mermaid\")); });");
+      sb.AppendLine("</script>");
+      sb.AppendLine("<style>");
+      sb.AppendLine("  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12.2pt; }");
+      sb.AppendLine("  .mermaid-container { display: flex; justify-content: center; }");
+      sb.AppendLine("  .copy-container { display: flex; justify-content: center; margin-top: 20px; }");
+      sb.AppendLine("  textarea { width: 80%; height: 100px; }");
+      sb.AppendLine("  button { margin-left: 10px; padding: 5px 10px; }");
+      sb.AppendLine("</style>");
+      sb.AppendLine("<script>");
+      sb.AppendLine("  function copyToClipboard() {");
+      sb.AppendLine("    var copyText = document.getElementById('mermaidScript');");
+      sb.AppendLine("    copyText.select();");
+      sb.AppendLine("    copyText.setSelectionRange(0, 99999);");
+      sb.AppendLine("    document.execCommand('copy');");      
+      sb.AppendLine("  }");
+      sb.AppendLine("</script>");
+      sb.AppendLine("</head>");
+      sb.AppendLine("<body>");
+      sb.AppendLine("  <div class=\"mermaid-container\">\r\n");
+      sb.AppendLine($"    <pre class=\"mermaid\">{mermaidScript}");
+      sb.AppendLine("    </pre></div>");
+      sb.AppendLine("  <div class=\"copy-container\">");
+      sb.AppendLine("    <textarea id=\"mermaidScript\" readonly>");
+      sb.AppendLine(mermaidScript);
+      sb.AppendLine("    </textarea>");
+      sb.AppendLine("    <button onclick=\"copyToClipboard()\">Copy Script</button>");
+      sb.AppendLine("  </div>");
+      sb.AppendLine("</body>\r\n</html>");
+      return sb.ToString();
     }
 
     private void inputClearToolStripMenuItem_Click(object sender, EventArgs e) {

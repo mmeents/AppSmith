@@ -1,7 +1,9 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -375,6 +377,327 @@ namespace AppSmith.Models {
       else if (w == "uniqueidentifier") result = "\"\"";
       else if (w == "varbinary") result = "null";
       return result;
+    }
+
+  }
+
+  public static class Mc { 
+    public static string GenerateDefaultDiagram(this Item tnDefault, Types types) {
+      StringBuilder res = new StringBuilder();
+      res.AppendLine("flowchart TD");
+      res.AppendLine("  subgraph \"Under Construction\"");
+      res.AppendLine("    A((Still Kicking)) -->|Write Code| B{Code Like No Tomorrow}");      
+      res.AppendLine("    B --> C{Bug Found?}");
+      res.AppendLine("    B -- New Feature --> F[Expanded Capabilities]");
+      res.AppendLine("    C -- Yes --> D[Debug Furiously]");      
+      res.AppendLine("    D -->|Fix it| B");
+      res.AppendLine("    F --> E[Leverage It!]");
+      res.AppendLine("    E --> G((Celebrate))");
+      res.AppendLine("    G --> A");
+      res.AppendLine("  end");
+      return res.ToString();
+    }
+    public static string GenerateServerMindmapDiagram(this Item tnServer, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbApi = new StringBuilder();
+      StringBuilder sbDb = new StringBuilder();
+
+      res.AppendLine("mindmap");
+      res.AppendLine($"  {tnServer.Name}");
+      foreach (Item child in tnServer.Nodes) {
+        if (child.TypeId == (int)TnType.Database) {
+          sbDb.AppendLine($"      {child.Name}");
+        }
+        if (child.TypeId == (int)TnType.Api) {
+          sbApi.AppendLine($"      {child.Name}");
+        }
+      }
+      if (sbApi.Length > 0) {
+        res.AppendLine("    APIs");
+        res.Append(sbApi.ToString());
+      }
+      if (sbDb.Length > 0) {
+        res.AppendLine("    Databases");
+        res.Append(sbDb.ToString());
+      }    
+
+      return res.ToString();
+    }
+
+    public static string GenerateDatabaseMindmapDiagram(this Item tnDatabase, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbViews = new StringBuilder();
+      StringBuilder sbTables = new StringBuilder();
+      StringBuilder sbProcedures = new StringBuilder();
+      StringBuilder sbFunctions = new StringBuilder();
+
+      res.AppendLine("mindmap");
+      res.AppendLine($"  {tnDatabase.Name}");
+      res.AppendLine($"    [Server {tnDatabase.Parent.Name}]");
+      foreach (Item child in tnDatabase.Nodes) {
+        if (child.TypeId == (int)TnType.Tables) {
+          foreach(Item table in child.Nodes) {
+            sbTables.AppendLine($"      {table.Name}");
+          }          
+        }
+        if (child.TypeId == (int)TnType.Views) {
+          foreach (Item view in child.Nodes) {
+            sbViews.AppendLine($"      {view.Name}");
+          }
+        }
+        if (child.TypeId == (int)TnType.Procedures) {
+          foreach (Item proc in child.Nodes) {
+            sbProcedures.AppendLine($"      {proc.Name}");
+          }
+        }
+        if (child.TypeId == (int)TnType.Functions) {
+          foreach (Item func in child.Nodes) {
+            sbFunctions.AppendLine($"      {func.Name}");
+          }
+        }        
+      }
+      if (sbTables.Length > 0) {
+        res.AppendLine("    Tables");
+        res.Append(sbTables.ToString());
+      }
+      if (sbViews.Length > 0) {
+        res.AppendLine("    Views");
+        res.Append(sbViews.ToString());
+      }
+      if (sbFunctions.Length > 0) {
+        res.AppendLine("    Functions");
+        res.Append(sbFunctions.ToString());
+      }
+      if (sbProcedures.Length > 0) {
+        res.AppendLine("    Stored Procedures");
+        res.Append(sbFunctions.ToString());
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateServerFlowchartDiagram(this Item tnServer, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbApi = new StringBuilder();
+      StringBuilder sbDb = new StringBuilder();
+      res.AppendLine($"---\r\ntitle: {tnServer.Name}\r\n---");
+      res.AppendLine("flowchart LR");      
+      foreach (Item child in tnServer.Nodes) {
+        if (child.TypeId == (int)TnType.Database) {          
+          sbDb.AppendLine($"    Server[{tnServer.Name}] --> |Hosts| Db{child.Id}[({child.Name})] ");
+        }
+        if (child.TypeId == (int)TnType.Api) {          
+          sbApi.AppendLine($"    Server[{tnServer.Name}] --> |Hosts| Api{child.Id}[{child.Name}] ");
+        }
+      }
+      if (sbApi.Length > 0) {        
+        res.Append(sbApi.ToString());
+      }
+      if (sbDb.Length > 0) {        
+        res.Append(sbDb.ToString());
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateDatabaseFlowchartDiagram(this Item tnDatabase, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbViews = new StringBuilder();
+      StringBuilder sbTables = new StringBuilder();
+      StringBuilder sbProcedures = new StringBuilder();
+      StringBuilder sbFunctions = new StringBuilder();
+      res.AppendLine($"---\r\ntitle: {tnDatabase.Name}\r\n---");
+      res.AppendLine("flowchart LR");      
+      res.AppendLine($"  Database{tnDatabase.Id}[({tnDatabase.Name})] <--> |on| Server{tnDatabase.Id}([Server {tnDatabase.Parent.Text}]) ");
+      foreach (Item child in tnDatabase.Nodes) {
+        if (child.TypeId == (int)TnType.Tables) {
+          foreach (Item table in child.Nodes) {
+            sbTables.AppendLine($"  Database{tnDatabase.Id}[({tnDatabase.Name})] --> |Table| Table{table.Id}[[{table.Name}]] ");
+          }
+        }
+        if (child.TypeId == (int)TnType.Views) {
+          foreach (Item view in child.Nodes) {
+            sbViews.AppendLine($"  Database{tnDatabase.Id}[({tnDatabase.Name})] --> |View| View{view.Id}[[{view.Name}]] ");
+          }
+        }
+        if (child.TypeId == (int)TnType.Procedures) {
+          foreach (Item proc in child.Nodes) {
+            sbProcedures.AppendLine($"  Database{tnDatabase.Id}[({tnDatabase.Name})] --> |StProcedure| Proc{proc.Id}[{proc.Name}] ");
+          }
+        }
+        if (child.TypeId == (int)TnType.Functions) {
+          foreach (Item func in child.Nodes) {
+            sbFunctions.AppendLine($"  Database{tnDatabase.Id}[({tnDatabase.Name})] --> |Function| Func{func.Id}[{func.Name}] ");
+          }
+        }
+      }
+      if (sbTables.Length > 0) {        
+        res.Append(sbTables.ToString());
+      }
+      if (sbViews.Length > 0) {        
+        res.Append(sbViews.ToString());
+      }
+      if (sbFunctions.Length > 0) {        
+        res.Append(sbFunctions.ToString());
+      }
+      if (sbProcedures.Length > 0) {        
+        res.Append(sbFunctions.ToString());
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateApiFlowchartDiagram(this Item tnApi, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbControllers = new StringBuilder();
+      res.AppendLine($"---\r\ntitle: API {tnApi.Name}\r\n---");
+      res.AppendLine("flowchart LR");
+      res.AppendLine($"  Api{tnApi.Id}[{tnApi.Name}] <--> |Hosts| Server{tnApi.Id}([Server {tnApi.Parent.Text}]) ");
+      foreach (Item child in tnApi.Nodes) {
+        if (child.TypeId == (int)TnType.Controller) {
+          sbControllers.AppendLine($"  Api{tnApi.Id}[{tnApi.Name}] --> |Controller| Controller{child.Id}[[{child.Name}]] ");
+        }
+      }
+      if (sbControllers.Length > 0) {
+        res.Append(sbControllers.ToString());
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateControllerFlowchartDiagram(this Item tnController, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbMethods = new StringBuilder();
+      StringBuilder sbProperties = new StringBuilder();
+      res.AppendLine($"---\r\ntitle: Controller {tnController.Name}\r\n---");
+      res.AppendLine("flowchart TB");
+      res.AppendLine($"  Controller{tnController.Id}[{tnController.Name}] --> |Hosts| Api{tnController.Id}([Api {tnController.Parent.Text}]) ");
+      foreach (Item child in tnController.Nodes) {
+        if (child.TypeId == (int)TnType.Method) {
+          sbMethods.AppendLine($"  Controller{tnController.Id}[{tnController.Name}] --> |Method| Method{child.Id}[[{child.Name}]] ");
+        }
+        if (child.TypeId == (int)TnType.Property) {
+          sbProperties.AppendLine($"  Controller{tnController.Id}[{tnController.Name}] --> |Property| Property{child.Id}[[{child.Name}]] ");
+        }
+      }
+      if (sbProperties.Length > 0) {
+        res.Append(sbProperties.ToString());
+      }
+      if (sbMethods.Length > 0) {
+        res.Append(sbMethods.ToString());
+      }
+      return res.ToString();
+    }
+    public static string GenerateClassFlowchartDiagram(this Item tnClass, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbMethods = new StringBuilder();
+      StringBuilder sbProperties = new StringBuilder();
+      res.AppendLine($"---\r\ntitle: Class {tnClass.Name}\r\n---");
+      res.AppendLine("flowchart TB");
+      res.AppendLine($"  Class{tnClass.Id}[{tnClass.Name}] --> |Inherits| Base{tnClass.Id}[[{tnClass.BaseClass}]] ");
+      foreach (Item child in tnClass.Nodes) {
+        if (child.TypeId == (int)TnType.Method) {
+          sbMethods.AppendLine($"  Class{tnClass.Id}[{tnClass.Name}] --> |Method| Method{child.Id}[[{child.Name}]] ");
+        }
+        if (child.TypeId == (int)TnType.Property) {
+          sbProperties.AppendLine($"  Class{tnClass.Id}[{tnClass.Name}] --> |Property| Property{child.Id}[[{child.Name}]] ");
+        }
+      }      
+      if (sbProperties.Length > 0) {
+        res.Append(sbProperties.ToString());
+      }
+      if (sbMethods.Length > 0) {
+        res.Append(sbMethods.ToString());
+      }
+      return res.ToString();
+    }
+
+    public static string GenerateControllerErDiagram(this Item tnController, Types types, bool isNested) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbMethods = new StringBuilder();
+      StringBuilder sbProperties = new StringBuilder();
+      if (!isNested) {
+        res.AppendLine($"---\r\ntitle: Controller {tnController.Name}\r\n---");
+        res.AppendLine("erDiagram");
+      }      
+      res.AppendLine($"  {tnController.Name} {{");
+      foreach (Item child in tnController.Nodes) {
+        if (child.TypeId == (int)TnType.Method) {
+          sbMethods.AppendLine($"  {child.AsCSharpType(types)} {child.Name} ");
+        }
+        if (child.TypeId == (int)TnType.Property) {
+          sbProperties.AppendLine($"  {child.AsCSharpType(types)} {child.Name} ");
+        }
+      }
+      if (sbProperties.Length > 0) {
+        res.Append(sbProperties.ToString());
+      }
+      if (sbMethods.Length > 0) {
+        res.Append(sbMethods.ToString());
+      }
+      res.AppendLine("  }");
+      return res.ToString();
+    }
+
+    public static string GenerateClassErDiagram(this Item tnClass, Types types, bool isNested ) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbMethods = new StringBuilder();
+      StringBuilder sbProperties = new StringBuilder();
+      if (!isNested) {
+        res.AppendLine($"---\r\ntitle: Class {tnClass.Name}\r\n---");
+        res.AppendLine("erDiagram");
+      }      
+      res.AppendLine($"  {tnClass.Name} {{");
+      foreach (Item child in tnClass.Nodes) {
+        if (child.TypeId == (int)TnType.Method) {
+          sbMethods.AppendLine($"  {child.AsCSharpType(types)} {child.Name} ");        
+        }
+        if (child.TypeId == (int)TnType.Property) {
+          sbProperties.AppendLine($"  {child.AsCSharpType(types)} {child.Name} ");
+        }
+      }
+      if (sbProperties.Length > 0) {
+        res.Append(sbProperties.ToString());
+      }
+      if (sbMethods.Length > 0) {
+        res.Append(sbMethods.ToString());
+      }
+      res.AppendLine("  }");
+      return res.ToString();
+    }
+    public static string GenerateTablesErDiagram(this Item tnTables, Types types) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbColumns = new StringBuilder();
+      res.AppendLine("erDiagram");      
+      foreach (Item table in tnTables.Nodes) {
+        res.Append(table.GenerateTableErDiagram(types, true));
+      }
+      if (sbColumns.Length > 0) {
+        res.Append(sbColumns.ToString());
+      }      
+      return res.ToString();
+    }
+
+    public static string GenerateTableErDiagram(this Item tnTable, Types types, bool isNested) {
+      StringBuilder res = new StringBuilder();
+      StringBuilder sbColumns = new StringBuilder();
+      if (!isNested) {
+        res.AppendLine($"---\r\ntitle: Table {tnTable.Name}\r\n---");
+        res.AppendLine("erDiagram");       
+      }
+      res.AppendLine($"  {tnTable.AsSafeName()} {{");
+      foreach (Item child in tnTable.Nodes) {
+        if (child.TypeId == (int)TnType.TableColumn) {
+          string src = child?.Code ?? "";
+          bool isIdentity = (src.IndexOf("IDENTITY", StringComparison.CurrentCultureIgnoreCase) >= 0);          
+          if (isIdentity) {
+            sbColumns.AppendLine($"    {child.AsCSharpType(types)} {child.AsSafeName()} PK");
+          } else {
+            sbColumns.AppendLine($"    {child.AsCSharpType(types)} {child.AsSafeName()}");
+          }          
+        }
+      }
+      if (sbColumns.Length > 0) {
+        res.Append(sbColumns.ToString());
+      }
+      res.AppendLine("  }");
+      return res.ToString();
     }
 
   }
