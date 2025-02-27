@@ -322,8 +322,8 @@ namespace AppSmith.Models {
     public static string GetToTypeFromStringValue(string sqlType) {
       string w = sqlType.ToLower().ParseFirst(" ()");
       string result = "";
-      if (w == "char") result = "";
-      else if (w == "varchar") result = "";
+      if (w == "char") result = ".ValueString";
+      else if (w == "varchar") result = ".ValueString";
       else if (w == "int") result = ".AsInt32()";
       else if (w == "bigint") result = ".AsInt64()";
       else if (w == "binary") result = ".AsByte()";
@@ -335,13 +335,13 @@ namespace AppSmith.Models {
       else if (w == "money") result = ".AsDecimal()";
       else if (w == "numeric") result = ".AsDecimal()";
       else if (w == "nchar") result = ".AsByte()";
-      else if (w == "ntext") result = "";
-      else if (w == "nvarchar") result = "";
+      else if (w == "ntext") result = ".ValueString";
+      else if (w == "nvarchar") result = ".ValueString";
       else if (w == "real") result = ".AsDecimal()";
       else if (w == "smallint") result = ".AsInt32()";
       else if (w == "smallmoney") result = ".AsDecimal()";
       else if (w == "smalldatetime") result = ".AsDateTime()";
-      else if (w == "text") result = "";
+      else if (w == "text") result = ".ValueString";
       else if (w == "timestamp") result = ".AsDateTime()";
       else if (w == "tinyint") result = ".AsInt32()";
       else if (w == "uniqueidentifier") result = "";
@@ -1419,6 +1419,8 @@ namespace AppSmith.Models {
       string pU;
       string pL;
       string sqlT;
+      string scn = "";
+      string allItems = "";
       for (Int32 i = 0; i < tnTable.Nodes.Count; i++) {
         Item iI = (Item)tnTable.Nodes[i];
         pU = iI.Name.AsUpperCaseFirstLetter();
@@ -1426,11 +1428,11 @@ namespace AppSmith.Models {
         sqlT = types[iI.SQLTypeId].Desc;
         a = a + (a == "" ? "" : ", ") + $"{pU} = {pL}";
         d = d + (d == "" ? "" : ", ") + $"{Cs.GetCTypeFromSQLType(sqlT)} {pL}";
-        t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(\"{pU}\", ColumnType.{Cs.GetColumnTypeFromSQLType(sqlT)});";
-        art = Cs.GetColumnTypeFromSQLType(sqlT);
-        art = art == "String" ? "" : ".AsString()";
-        ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][\"{pU}\"].Value = item.{pU}{art};";        
-        b = b + (b =="" ? "" : ","+Environment.NewLine)     + $"          {pU} = _table.Rows[id][\"{pU}\"].Value{Cs.GetToTypeFromStringValue(sqlT)}";
+        t = t + (t == "" ? "" : Environment.NewLine) + $"        _table.AddColumn(Cn.{pU}, ColumnType.{Cs.GetColumnTypeFromSQLType(sqlT)});";        
+        ar = ar + (ar == "" ? "" : Environment.NewLine) + $"      _table.Rows[RowKey][Cn.{pU}].Value = item.{pU};";        
+        b = b + (b =="" ? "" : ","+Environment.NewLine)     + $"          {pU} = _table.Rows[id][Cn.{pU}]{Cs.GetToTypeFromStringValue(sqlT)}";
+        scn = scn + (scn == "" ? "" : Environment.NewLine) + $"    public static string {pU} {{ get {{ return \"{pU}\"; }} }}";
+        allItems = allItems + (allItems == "" ? "" : ","+nl)+$"          {pU} = row[Cn.{pU}]{Cs.GetToTypeFromStringValue(sqlT)}";
       }
       string className = tblName.RemoveChar('.').AsUpperCaseFirstLetter();
       string classVarName = className.AsLowerCaseFirstLetter();
@@ -1495,42 +1497,52 @@ namespace AppSmith.Models {
         "      }" + nl +
         "      return Ok(result == 1);" + nl +
         "    }" + nl +
-        "  }" + nl + nl + 
+        "  }" + nl + nl +
+        "    " + nl +
+        "  public static class Cn {" + nl + scn + nl +
+        "  }" + nl + nl +
        $"  public class {className}FileTable" + "{" + nl +
         "    private readonly FileTable _table;"+nl+
-        "    public Columns Columns { get { return _table.Columns; }}"+ nl +
+        "    public Columns Columns { get { return _table.Columns; }}" + nl +
         "    public Rows Rows { get { return _table.Rows; }}" + nl +
        $"    public {className}FileTable(string fileName)"+"{"+nl+
         "      _table = new FileTable(fileName); " + nl +
-        "      _table.Active = true;" + nl +
         "      if (_table.Columns.Count()==0){" + nl +     
         t+ nl +
         "      }" + nl +
         "    }" + nl +
        $"    public {className}? Get({sKeyType} id)"+"{"+nl+
-        "      if(_table.Rows.Contains(id)){"+nl+
+        "      if(_table.Rows.ContainsKey(id)){"+nl+
        $"        return new {className}()" + "{" + nl + b +nl+
         "        };"+nl+
         "      } else { return null; }"+nl+
         "    }"+nl+
        $"    public void Insert({className} item)"+"{" + nl +
-       $"      {sKeyType} RowKey = _table.AddRow();" + nl +
+       $"      var row = _table.AddRow();" + nl +
+       $"      {sKeyType} RowKey = row.Id;" + nl +
         ar+ nl +
-        "      _table.Save();" + nl +
+        "      _table.SaveToFile();" + nl +
         "    }" + nl +
        $"    public void Update({className} item)" + "{" + nl +
        $"      {sKeyType} RowKey = item.Id;" + nl + 
         ar + nl +
-        "      _table.Save();" + nl +
+        "      _table.SaveToFile();" + nl +
         "    }" + nl +
        $"    public void Delete({className} item)" + "{" + nl +
        $"      {sKeyType} RowKey = item.Id;" + nl +
-        "      _table.Rows.Remove(RowKey, out Row? _);" + nl +
-        "      _table.Save();" + nl +
+        "      _table.RemoveRow(RowKey);" + nl +
+        "      _table.SaveToFile();" + nl +
         "    }" + nl +
-        "    public void Save(){ _table.Save(); }  " + nl +
-
-       "  }" + nl + nl +
+        "    public void Save(){ _table.SaveToFile(); }  " + nl +
+       $"    public IEnumerable<{className}> GetAll{className}s()" + "{" + nl +
+       $"      List<{className}> items = new();" + nl +        
+        "      foreach(var row in _table.Rows.Values.ToList()) {" + nl +
+       $"        items.Add(new {className}(){{"+nl+allItems+nl+
+       $"        }});" + nl +
+        "      }"+ nl +
+        "      return items;" + nl +
+        "    }" + nl +
+        "  }" + nl + nl +
 
         (IncludeNamespace ? "}" : "");
 
